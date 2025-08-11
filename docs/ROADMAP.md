@@ -6,7 +6,10 @@
 - ✅ Tailwind CSS styling with modern UI
 - ✅ OpenAI GPT-4o-mini integration working
 - ✅ HTTP-only development environment (avoiding certificate issues)
-- ✅ Phase 1.1 & 1.2 complete - functional chat application
+- ✅ Clean, focused application (removed template components)
+- ✅ Professional home page with learning roadmap
+- ✅ Polished chat UX with auto-focus and reactive controls
+- ✅ Phase 1.1 & 1.2 complete - production-ready chat foundation
 
 ## Technical Architecture Decisions
 - **Framework**: .NET 9 Blazor Server
@@ -32,6 +35,10 @@
 - [x] Fix layout and styling issues
 - [x] Configure HTTP-only development environment
 - [x] Test end-to-end chat functionality
+- [x] Remove template components (Counter, Weather)
+- [x] Enhance home page with project overview
+- [x] Improve chat input UX (auto-focus, reactive send button)
+- [x] Add focus management after sending/receiving messages
 
 ### 1.3 Core Chat Functionality
 - [ ] Implement Kernel & Services setup

@@ -61,14 +61,25 @@
 - [x] Update system prompt to guide function usage
 
 ### 1.5 Enhanced Chat Features
-- [ ] Implement prompt templating (Handlebars)
-- [ ] Add chat history management
-- [ ] Persist conversation state
+- [x] Implement prompt templating from external file
+- [x] Ensure prompt files are copied to build output
+- [x] Use templating to inject dynamic data (e.g., current date)
+- [ ] Implement persistent user ID using browser local storage
+- [ ] Persist conversation state to JSON, keyed by user ID
+- [ ] Load conversation history on user reconnect
 
 ## Next Phases (Planned)
 - **Phase 2**: AI Orchestration (Function calling, RAG, External search)
 - **Phase 3**: Agent Architecture (Single agent, Multi-agent collaboration)
-- **Phase 4**: Advanced Capabilities (Multi-modal, Processes, Production features)
+- **Phase 4**: Advanced Capabilities (Multi-modal, Processes)
+- **Phase 5**: Production Ready Features (Login, Database, etc.)
+
+## Phase 5: Production Ready Features
+- [ ] Implement user authentication with ASP.NET Core Identity
+- [ ] Replace JSON persistence with a database (e.g., LiteDB or EF Core)
+- [ ] Add robust error logging and monitoring
+- [ ] Implement unit and integration tests
+- [ ] Create a CI/CD pipeline for deployment
 
 ---
 *Last Updated: August 11, 2025*

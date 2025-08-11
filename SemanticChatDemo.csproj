@@ -15,4 +15,10 @@
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.OpenAI" Version="1.61.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Update="Prompts\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

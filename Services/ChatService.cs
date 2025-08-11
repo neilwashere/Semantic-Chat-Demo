@@ -10,17 +10,28 @@ public class ChatService(Kernel kernel, ILogger<ChatService> logger)
     // Store chat history per connection ID
     private readonly ConcurrentDictionary<string, ChatHistory> conversations = new();
 
-    public ChatHistory GetOrCreateChatHistory(string connectionId)
+    public async Task<ChatHistory> GetOrCreateChatHistoryAsync(string connectionId)
     {
-        return conversations.GetOrAdd(connectionId, _ => new ChatHistory(
-            "You are a helpful assistant with access to bombastic weather facts. " +
-            "When users ask about weather or want interesting facts, you can use your weather functions. " +
-            "Always be enthusiastic and engaging in your responses!"));
+        if (conversations.TryGetValue(connectionId, out var chatHistory))
+        {
+            return chatHistory;
+        }
+
+        var systemPromptTemplate = await File.ReadAllTextAsync("Prompts/SystemPrompt.txt");
+
+        var prompt = await kernel.CreateFunctionFromPrompt(systemPromptTemplate)
+            .InvokeAsync<string>(kernel, new() {
+                { "current_date", DateTime.UtcNow.ToString("R") }
+            });
+
+        var newChatHistory = new ChatHistory(prompt);
+        conversations.TryAdd(connectionId, newChatHistory);
+        return newChatHistory;
     }
 
     public async IAsyncEnumerable<string> StreamResponseAsync(string connectionId, string userMessage)
     {
-        var chatHistory = GetOrCreateChatHistory(connectionId);
+        var chatHistory = await GetOrCreateChatHistoryAsync(connectionId);
 
         // Add user message to history
         chatHistory.AddUserMessage(userMessage);
@@ -122,7 +133,10 @@ public class ChatService(Kernel kernel, ILogger<ChatService> logger)
 
     public int GetHistoryCount(string connectionId)
     {
-        var history = GetOrCreateChatHistory(connectionId);
-        return history.Count;
+        if (conversations.TryGetValue(connectionId, out var history))
+        {
+            return history.Count;
+        }
+        return 0;
     }
 }

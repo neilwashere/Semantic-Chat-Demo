@@ -17,6 +17,12 @@
             <span class="@(_hubConnection?.State == HubConnectionState.Connected ? "text-green-600" : "text-red-600")">
                 @(_hubConnection?.State.ToString() ?? "Disconnected")
             </span>
+            @if (!string.IsNullOrEmpty(userId))
+            {
+                <span class="ml-4 text-gray-500">
+                    User: <span class="font-mono text-xs">@userId</span>
+                </span>
+            }
         </p>
     </div>
 
@@ -84,6 +90,7 @@
     private List<ChatMessage> messages = new();
     private string messageInput = string.Empty;
     private ElementReference messageInputRef;
+    private string? userId;
 
     public bool IsConnected =>
         _hubConnection?.State == HubConnectionState.Connected;
@@ -130,6 +137,13 @@
             InvokeAsync(StateHasChanged);
         });
 
+        _hubConnection.On<List<ConversationMessage>>("ExistingMessagesLoaded", (existingMessages) =>
+        {
+            LoadExistingMessagesIntoUI(existingMessages);
+            InvokeAsync(StateHasChanged);
+            InvokeAsync(ScrollToBottom);
+        });
+
         try
         {
             await _hubConnection.StartAsync();
@@ -151,6 +165,32 @@
     {
         if (firstRender)
         {
+            // Get or create persistent user ID after the DOM is ready
+            try
+            {
+                userId = await JSRuntime.InvokeAsync<string>("userStorage.getUserId");
+
+                // Load any existing history for this user
+                if (_hubConnection?.State == HubConnectionState.Connected && !string.IsNullOrEmpty(userId))
+                {
+                    await _hubConnection.SendAsync("LoadExistingMessages", userId);
+                }
+
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                // Fallback to a temporary ID if localStorage fails
+                userId = $"temp-user-{DateTime.Now.Ticks}";
+                var errorMessage = new ChatMessage
+                {
+                    Content = $"Warning: Could not access browser storage. Using temporary session. {ex.Message}",
+                    Role = "system"
+                };
+                messages.Add(errorMessage);
+                StateHasChanged();
+            }
+
             await FocusInput();
         }
     }
@@ -169,9 +209,9 @@
 
     private async Task SendMessage()
     {
-        if (_hubConnection is not null && !string.IsNullOrWhiteSpace(messageInput))
+        if (_hubConnection is not null && !string.IsNullOrWhiteSpace(messageInput) && !string.IsNullOrEmpty(userId))
         {
-            await _hubConnection.SendAsync("SendMessage", messageInput);
+            await _hubConnection.SendAsync("SendMessage", userId, messageInput);
             messageInput = string.Empty;
             await FocusInput();
         }
@@ -182,6 +222,41 @@
         if (e.Key == "Enter" && !e.ShiftKey)
         {
             await SendMessage();
+        }
+    }
+
+    private async Task ClearHistory()
+    {
+        if (_hubConnection is not null && !string.IsNullOrEmpty(userId))
+        {
+            await _hubConnection.SendAsync("ClearHistory", userId);
+        }
+    }
+
+    private void LoadExistingMessagesIntoUI(List<ConversationMessage> existingMessages)
+    {
+        // Clear current messages and load existing ones
+        messages.Clear();
+        
+        foreach (var msg in existingMessages)
+        {
+            // Skip empty messages (streaming artifacts)
+            if (string.IsNullOrWhiteSpace(msg.Content))
+                continue;
+                
+            // Skip tool messages (function call results)
+            if (msg.Role == "tool")
+                continue;
+                
+            messages.Add(new ChatMessage
+            {
+                Id = msg.Id,
+                Content = msg.Content,
+                Role = msg.Role,
+                Timestamp = msg.Timestamp,
+                IsComplete = true,
+                IsStreaming = false
+            });
         }
     }
 
@@ -233,6 +308,33 @@
         const element = document.getElementById(elementId);
         if (element) {
             element.scrollTop = element.scrollHeight;
+        }
+    };
+
+    // User storage utilities for managing persistent user identity
+    window.userStorage = {
+        getUserId: function () {
+            const storageKey = 'semantic-chat-userId';
+            let userId = localStorage.getItem(storageKey);
+
+            if (!userId) {
+                // Generate a simple but unique user ID
+                const timestamp = Date.now().toString(36);
+                const random = Math.random().toString(36).substring(2, 8);
+                userId = `user-${timestamp}-${random}`;
+
+                localStorage.setItem(storageKey, userId);
+                console.log('Generated new user ID:', userId);
+            } else {
+                console.log('Retrieved existing user ID:', userId);
+            }
+
+            return userId;
+        },
+
+        clearUserId: function () {
+            localStorage.removeItem('semantic-chat-userId');
+            console.log('Cleared user ID from storage');
         }
     };
 </script>

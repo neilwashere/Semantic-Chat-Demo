@@ -7,11 +7,12 @@ namespace SemanticChatDemo.Hubs;
 
 public class ChatHub(ChatService chatService, ILogger<ChatHub> logger) : Hub
 {
-    public async Task SendMessage(string message)
+    public async Task SendMessage(string userId, string message)
     {
         try
         {
-            logger.LogInformation("Received message from {ConnectionId}: {Message}", Context.ConnectionId, message);
+            logger.LogInformation("Received message from user {UserId} (connection {ConnectionId}): {Message}",
+                userId, Context.ConnectionId, message);
 
             // Echo the user message immediately
             var userMessage = new ChatMessage
@@ -38,7 +39,7 @@ public class ChatHub(ChatService chatService, ILogger<ChatHub> logger) : Hub
 
             // Stream the response
             var fullContent = "";
-            await foreach (var chunk in chatService.StreamResponseAsync(Context.ConnectionId, message))
+            await foreach (var chunk in chatService.StreamResponseAsync(userId, message))
             {
                 fullContent += chunk;
 
@@ -65,7 +66,8 @@ public class ChatHub(ChatService chatService, ILogger<ChatHub> logger) : Hub
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error processing message from {ConnectionId}: {Message}", Context.ConnectionId, message);
+            logger.LogError(ex, "Error processing message from user {UserId} (connection {ConnectionId}): {Message}",
+                userId, Context.ConnectionId, message);
 
             var errorMessage = new ChatMessage
             {
@@ -77,23 +79,38 @@ public class ChatHub(ChatService chatService, ILogger<ChatHub> logger) : Hub
         }
     }
 
-    public async Task ClearHistory()
+    public async Task ClearHistory(string userId)
     {
-        chatService.ClearHistory(Context.ConnectionId);
+        await chatService.ClearHistory(userId);
         await Clients.Caller.SendAsync("HistoryCleared");
-        logger.LogInformation("Cleared history for connection {ConnectionId}", Context.ConnectionId);
+        logger.LogInformation("Cleared history for user {UserId} (connection {ConnectionId})", userId, Context.ConnectionId);
     }
 
-    public async Task GetHistoryInfo()
+    public async Task GetHistoryInfo(string userId)
     {
-        var count = chatService.GetHistoryCount(Context.ConnectionId);
+        var count = chatService.GetHistoryCount(userId);
         await Clients.Caller.SendAsync("HistoryInfo", new { MessageCount = count });
+    }
+
+    public async Task LoadExistingMessages(string userId)
+    {
+        try
+        {
+            var existingMessages = await chatService.GetExistingMessagesAsync(userId);
+            await Clients.Caller.SendAsync("ExistingMessagesLoaded", existingMessages);
+            logger.LogInformation("Loaded {MessageCount} existing messages for user {UserId}", 
+                existingMessages.Count, userId);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error loading existing messages for user {UserId}", userId);
+        }
     }
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
-        chatService.ClearHistory(Context.ConnectionId);
-        logger.LogInformation("Connection {ConnectionId} disconnected, cleared history", Context.ConnectionId);
+        // Note: We no longer clear history on disconnect since it's tied to userId, not connectionId
+        logger.LogInformation("Connection {ConnectionId} disconnected", Context.ConnectionId);
         await base.OnDisconnectedAsync(exception);
     }
 

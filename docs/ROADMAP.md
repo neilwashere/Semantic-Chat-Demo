@@ -9,10 +9,12 @@
 - ✅ Clean, focused application (removed template components)
 - ✅ Professional home page with learning roadmap
 - ✅ Polished chat UX with auto-focus and reactive controls
-- ✅ **Phase 1.1, 1.2, 1.3 & 1.4 complete** - streaming chat with auto-invoked function calling
+- ✅ **Phase 1.1, 1.2, 1.3, 1.4 & 1.5 complete** - streaming chat with persistent user conversations
 - ✅ Real-time streaming responses with visual indicators
-- ✅ Conversation history management per connection
+- ✅ Conversation history management with JSON persistence
 - ✅ First native C# plugin integrated and working
+- ✅ Persistent user IDs using browser localStorage
+- ✅ JSON-based conversation storage keyed by user ID
 
 ## Technical Architecture Decisions
 - **Framework**: .NET 9 Blazor Server
@@ -64,9 +66,11 @@
 - [x] Implement prompt templating from external file
 - [x] Ensure prompt files are copied to build output
 - [x] Use templating to inject dynamic data (e.g., current date)
-- [ ] Implement persistent user ID using browser local storage
-- [ ] Persist conversation state to JSON, keyed by user ID
-- [ ] Load conversation history on user reconnect
+- [x] Implement persistent user ID using browser local storage
+- [x] Persist conversation state to JSON, keyed by user ID
+- [x] Load conversation history on user reconnect
+- [x] Filter out streaming artifacts and tool messages from persistence
+- [x] Implement incremental conversation saving to prevent duplication
 
 ## Next Phases (Planned)
 - **Phase 2**: AI Orchestration (Function calling, RAG, External search)

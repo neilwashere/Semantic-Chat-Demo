@@ -31,6 +31,9 @@ kernelBuilder.Plugins.AddFromType<WeatherFactsPlugin>();
 // Add ChatService for managing conversations
 builder.Services.AddScoped<ChatService>();
 
+// Add ConversationPersistenceService for JSON storage
+builder.Services.AddScoped<ConversationPersistenceService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

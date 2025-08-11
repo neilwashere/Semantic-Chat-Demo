@@ -21,6 +21,11 @@ public class AgentConfiguration
     public string Instructions { get; set; } = string.Empty;
 
     /// <summary>
+    /// Specific personality traits and speaking style to maintain consistency
+    /// </summary>
+    public string PersonalityAnchoring { get; set; } = string.Empty;
+
+    /// <summary>
     /// Emoji used as the agent's avatar
     /// </summary>
     public string AvatarEmoji { get; set; } = string.Empty;

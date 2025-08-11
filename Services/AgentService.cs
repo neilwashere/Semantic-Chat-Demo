@@ -26,12 +26,15 @@ public class AgentService(Kernel kernel, ILogger<AgentService> logger)
 
             foreach (var config in configurations)
             {
+                // Enhance agent instructions with personality reinforcement
+                var enhancedInstructions = AgentTemplates.EnhanceAgentInstructions(config);
+                
                 // Create ChatCompletionAgent for each configuration
                 var agent = new ChatCompletionAgent()
                 {
                     Name = config.Name,
                     Description = config.Description,
-                    Instructions = config.Instructions,
+                    Instructions = enhancedInstructions,
                     Kernel = kernel
                 };
 
@@ -39,9 +42,7 @@ public class AgentService(Kernel kernel, ILogger<AgentService> logger)
                 agentConfigurations[config.Name] = config;
                 
                 logger.LogInformation("Initialized agent: {AgentName}", config.Name);
-            }
-
-            logger.LogInformation("Successfully initialized {AgentCount} agents", configurations.Count);
+            }            logger.LogInformation("Successfully initialized {AgentCount} agents", configurations.Count);
         }
         catch (Exception ex)
         {
@@ -88,12 +89,12 @@ public class AgentService(Kernel kernel, ILogger<AgentService> logger)
     {
         try
         {
-            // Get the chat completion service from the kernel  
+            // Get the chat completion service from the kernel
             var chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
 
             // Create a new ChatHistory with agent's instructions as system message
             var agentHistory = new ChatHistory(agent.Instructions ?? "You are a helpful assistant.");
-            
+
             // Add recent conversation history (last few messages to provide context)
             var recentMessages = history.TakeLast(6); // Keep last 6 messages for context
             foreach (var message in recentMessages)

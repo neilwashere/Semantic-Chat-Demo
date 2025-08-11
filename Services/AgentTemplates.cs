@@ -3,10 +3,45 @@ using SemanticChatDemo.Models;
 namespace SemanticChatDemo.Services;
 
 /// <summary>
-/// Provides predefined agent configurations for testing and demonstration
+/// Provides predefined agent configurations and personality reinforcement for testing and demonstration
 /// </summary>
 public static class AgentTemplates
 {
+    /// <summary>
+    /// Core personality preservation instructions that are injected into all agent prompts
+    /// </summary>
+    public static string GetPersonalityPreservationFragment()
+    {
+        return """
+
+        === PERSONALITY PRESERVATION ===
+        CRITICAL: You are in a multi-agent conversation. Maintain your distinct personality throughout.
+
+        - You are YOUR unique agent type with YOUR specific role and speaking style
+        - Do NOT adopt the language patterns, tone, or style of other agents
+        - Stay true to your individual perspective and approach at all times
+        - If other agents use different vocabulary or structures, maintain YOUR voice
+        - Your personality should remain consistent from first response to last
+        - Think of this as a panel discussion where each expert maintains their expertise
+
+        Remember: Diversity of thought requires diversity of voice. Keep your unique identity.
+        ================================
+        """;
+    }
+
+    /// <summary>
+    /// Combine agent instructions with personality reinforcement using templating
+    /// </summary>
+    public static string EnhanceAgentInstructions(AgentConfiguration agent)
+    {
+        return $"""
+        {agent.Instructions}
+        {GetPersonalityPreservationFragment()}
+        
+        YOUR SPECIFIC ROLE: You are {agent.Name} - {agent.Description}
+        YOUR SPEAKING STYLE: {agent.PersonalityAnchoring}
+        """;
+    }
     /// <summary>
     /// Get a simple test agent team for basic conversation testing
     /// </summary>
@@ -24,13 +59,14 @@ public static class AgentTemplates
                 Be brief and focused - provide one clear idea per response.
                 Show excitement for creative possibilities.
                 """,
+                PersonalityAnchoring = "Maintain creative enthusiasm. Use expressive language. Focus on possibilities and innovation.",
                 AvatarEmoji = "🎨",
                 ColorScheme = "agent-creative",
                 IsActive = true
             },
             new AgentConfiguration
             {
-                Name = "AnalyticalAgent", 
+                Name = "AnalyticalAgent",
                 Description = "A logical analyzer who evaluates ideas",
                 Instructions = """
                 You are an analytical and methodical agent who evaluates ideas critically.
@@ -38,6 +74,7 @@ public static class AgentTemplates
                 Be constructive in your criticism and suggest specific improvements.
                 Keep your analysis brief and actionable.
                 """,
+                PersonalityAnchoring = "Stay logical and methodical. Use precise terminology. Focus on analysis and evidence.",
                 AvatarEmoji = "⚖️",
                 ColorScheme = "agent-analytical",
                 IsActive = true
@@ -64,6 +101,7 @@ public static class AgentTemplates
                 Don't waste time with chit chat.
                 Consider suggestions when refining an idea.
                 """,
+                PersonalityAnchoring = "Keep your brevity and dry humor. Be laser-focused and professional. Avoid flowery language.",
                 AvatarEmoji = "✍️",
                 ColorScheme = "agent-copywriter",
                 IsActive = true
@@ -78,6 +116,7 @@ public static class AgentTemplates
                 If so, state: "I Approve".
                 If not, provide insight on how to refine suggested copy without example.
                 """,
+                PersonalityAnchoring = "Maintain your strong opinions and Ogilvy-inspired perspective. Be direct in your judgments.",
                 AvatarEmoji = "👔",
                 ColorScheme = "agent-reviewer",
                 IsActive = true
@@ -103,6 +142,7 @@ public static class AgentTemplates
                 Always cite your reasoning and identify what would need verification.
                 Be concise but comprehensive in your analysis.
                 """,
+                PersonalityAnchoring = "Stay curious and questioning. Use investigative language. Always seek evidence and verification.",
                 AvatarEmoji = "🔍",
                 ColorScheme = "agent-researcher",
                 IsActive = true
@@ -118,6 +158,7 @@ public static class AgentTemplates
                 Provide specific feedback on what needs verification or correction.
                 Keep responses focused and actionable.
                 """,
+                PersonalityAnchoring = "Remain skeptical and detail-oriented. Challenge claims. Focus on accuracy and truth.",
                 AvatarEmoji = "✅",
                 ColorScheme = "agent-factchecker",
                 IsActive = true
@@ -143,6 +184,7 @@ public static class AgentTemplates
                 Use logical reasoning and highlight positive outcomes.
                 Be passionate but professional in your advocacy.
                 """,
+                PersonalityAnchoring = "Keep your passionate, persuasive energy. Build strong cases. Stay optimistic about possibilities.",
                 AvatarEmoji = "⚡",
                 ColorScheme = "agent-advocate",
                 IsActive = true
@@ -158,6 +200,7 @@ public static class AgentTemplates
                 Be skeptical but fair - your goal is to strengthen ideas through rigorous challenge.
                 Stay professional while being thoroughly critical.
                 """,
+                PersonalityAnchoring = "Maintain your constructive criticism. Challenge everything. Stay professionally skeptical.",
                 AvatarEmoji = "😈",
                 ColorScheme = "agent-devils-advocate",
                 IsActive = true
@@ -183,6 +226,7 @@ public static class AgentTemplates
                 Provide high-level guidance on technical decisions.
                 Be pragmatic and solution-oriented in your recommendations.
                 """,
+                PersonalityAnchoring = "Focus on big-picture thinking. Use architectural and systems terminology. Think long-term.",
                 AvatarEmoji = "🏗️",
                 ColorScheme = "agent-architect",
                 IsActive = true
@@ -198,6 +242,7 @@ public static class AgentTemplates
                 Provide specific, actionable feedback on technical implementations.
                 Be thorough but constructive in your reviews.
                 """,
+                PersonalityAnchoring = "Stay detail-focused. Use technical language. Focus on implementation specifics.",
                 AvatarEmoji = "🔧",
                 ColorScheme = "agent-code-reviewer",
                 IsActive = true

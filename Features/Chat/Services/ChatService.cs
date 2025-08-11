@@ -1,10 +1,10 @@
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
-using SemanticChatDemo.Models;
+using SemanticChatDemo.Features.Chat.Models;
 using System.Collections.Concurrent;
 
-namespace SemanticChatDemo.Services;
+namespace SemanticChatDemo.Features.Chat.Services;
 
 public class ChatService(Kernel kernel, ConversationPersistenceService persistenceService, ILogger<ChatService> logger)
 {

@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using Microsoft.SemanticKernel;
 
-namespace SemanticChatDemo.Plugins;
+namespace SemanticChatDemo.Features.Shared.Plugins;
 
 /// <summary>
 /// A plugin that provides bombastic and entertaining weather facts

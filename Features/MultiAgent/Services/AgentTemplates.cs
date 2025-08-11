@@ -1,6 +1,6 @@
-using SemanticChatDemo.Models;
+using SemanticChatDemo.Features.MultiAgent.Models;
 
-namespace SemanticChatDemo.Services;
+namespace SemanticChatDemo.Features.MultiAgent.Services;
 
 /// <summary>
 /// Provides predefined agent configurations and personality reinforcement for testing and demonstration

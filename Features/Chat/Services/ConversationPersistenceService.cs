@@ -1,7 +1,7 @@
 using System.Text.Json;
-using SemanticChatDemo.Models;
+using SemanticChatDemo.Features.Chat.Models;
 
-namespace SemanticChatDemo.Services;
+namespace SemanticChatDemo.Features.Chat.Services;
 
 /// <summary>
 /// Service for persisting and loading conversation data to/from JSON files

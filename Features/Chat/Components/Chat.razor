@@ -1,6 +1,10 @@
 @page "/chat"
 @using Microsoft.AspNetCore.SignalR.Client
-@using SemanticChatDemo.Models
+@using Microsoft.JSInterop
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@using SemanticChatDemo.Features.Chat.Models
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
 @implements IAsyncDisposable

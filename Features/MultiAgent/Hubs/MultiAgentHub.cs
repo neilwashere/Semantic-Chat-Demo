@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.SemanticKernel.ChatCompletion;
-using SemanticChatDemo.Models;
-using SemanticChatDemo.Services;
+using SemanticChatDemo.Features.MultiAgent.Models;
+using SemanticChatDemo.Features.MultiAgent.Services;
 
-namespace SemanticChatDemo.Hubs;
+namespace SemanticChatDemo.Features.MultiAgent.Hubs;
 
 /// <summary>
 /// SignalR hub for managing multi-agent conversations and real-time communication
@@ -35,13 +35,13 @@ public class MultiAgentHub(AgentService agentService, ILogger<MultiAgentHub> log
             // Send updated agent configurations to the client
             await Clients.Caller.SendAsync("AgentStatusUpdate", agentConfigurations);
 
-            logger.LogInformation("Successfully loaded {AgentCount} agents for team: {Team}", 
+            logger.LogInformation("Successfully loaded {AgentCount} agents for team: {Team}",
                 agentConfigurations.Count, agentTeam);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error loading team agents for team: {Team}", agentTeam);
-            
+
             // Send empty list on error
             await Clients.Caller.SendAsync("AgentStatusUpdate", new List<AgentConfiguration>());
         }
@@ -54,7 +54,7 @@ public class MultiAgentHub(AgentService agentService, ILogger<MultiAgentHub> log
     {
         try
         {
-            logger.LogInformation("Starting agent conversation for task: {Task} with team: {Team}", 
+            logger.LogInformation("Starting agent conversation for task: {Task} with team: {Team}",
                 userTask, agentTeam);
 
             // Initialize agents based on team selection
@@ -90,7 +90,7 @@ public class MultiAgentHub(AgentService agentService, ILogger<MultiAgentHub> log
         catch (Exception ex)
         {
             logger.LogError(ex, "Error starting agent conversation");
-            
+
             var errorMessage = new AgentMessage
             {
                 Content = "Sorry, I encountered an error starting the agent conversation.",
@@ -119,7 +119,7 @@ public class MultiAgentHub(AgentService agentService, ILogger<MultiAgentHub> log
         {
             // Alternate between agents
             var currentAgent = agents[currentTurn % agents.Count];
-            
+
             logger.LogInformation("Turn {Turn}: Agent {AgentName} responding", currentTurn + 1, currentAgent.Name);
 
             // Get agent response
@@ -227,7 +227,7 @@ public class MultiAgentHub(AgentService agentService, ILogger<MultiAgentHub> log
         catch (Exception ex)
         {
             logger.LogError(ex, "Error processing agent response for {AgentName}", agentName);
-            
+
             var errorMessage = new AgentMessage
             {
                 Content = $"Error getting response from {agentName}",

@@ -1,9 +1,9 @@
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents;
 using Microsoft.SemanticKernel.ChatCompletion;
-using SemanticChatDemo.Models;
+using SemanticChatDemo.Features.MultiAgent.Models;
 
-namespace SemanticChatDemo.Services;
+namespace SemanticChatDemo.Features.MultiAgent.Services;
 
 /// <summary>
 /// Service for managing multiple AI agents and their conversations
@@ -28,7 +28,7 @@ public class AgentService(Kernel kernel, ILogger<AgentService> logger)
             {
                 // Enhance agent instructions with personality reinforcement
                 var enhancedInstructions = AgentTemplates.EnhanceAgentInstructions(config);
-                
+
                 // Create ChatCompletionAgent for each configuration
                 var agent = new ChatCompletionAgent()
                 {
@@ -40,9 +40,10 @@ public class AgentService(Kernel kernel, ILogger<AgentService> logger)
 
                 agents[config.Name] = agent;
                 agentConfigurations[config.Name] = config;
-                
+
                 logger.LogInformation("Initialized agent: {AgentName}", config.Name);
-            }            logger.LogInformation("Successfully initialized {AgentCount} agents", configurations.Count);
+            }
+            logger.LogInformation("Successfully initialized {AgentCount} agents", configurations.Count);
         }
         catch (Exception ex)
         {

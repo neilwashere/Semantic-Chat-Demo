@@ -1,4 +1,4 @@
-namespace SemanticChatDemo.Models;
+namespace SemanticChatDemo.Features.MultiAgent.Models;
 
 /// <summary>
 /// Represents a streaming chunk from an agent message

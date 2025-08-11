@@ -1,6 +1,9 @@
 @page "/agent-teams"
 @using Microsoft.AspNetCore.SignalR.Client
-@using SemanticChatDemo.Models
+@using Microsoft.JSInterop
+@using Microsoft.AspNetCore.Components.Web
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@using SemanticChatDemo.Features.MultiAgent.Models
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
 @implements IAsyncDisposable
@@ -43,7 +46,7 @@
                     }
                 </div>
             </div>
-            
+
             <!-- Agent Team Selection -->
             <div class="flex items-center space-x-3 flex-shrink-0">
                 <label class="text-sm font-medium text-gray-700">Team:</label>
@@ -96,7 +99,7 @@
                                 <span class="font-medium text-gray-600">@message.AgentName</span>
                             </div>
                         }
-                        
+
                         <!-- Message Content -->
                         <div class="whitespace-pre-wrap">@message.Content</div>
                     </div>
@@ -220,10 +223,10 @@
         // Clear the current conversation when switching teams
         agentMessages.Clear();
         StateHasChanged();
-        
+
         // Load the new team's agents
         await LoadTeamAgents();
-        
+
         // Add a system message indicating team change
         var teamChangeMessage = new AgentMessage
         {
@@ -243,7 +246,7 @@
             "copywriter" => "CopyWriter + Reviewer",
             "test" => "Creative + Analytical",
             "research" => "Researcher + Fact Checker",
-            "debate" => "Advocate + Devil's Advocate", 
+            "debate" => "Advocate + Devil's Advocate",
             "technical" => "Architect + Code Reviewer",
             _ => teamKey
         };
@@ -374,7 +377,7 @@
     private string GetMessageBubbleClass(AgentMessage message)
     {
         var baseClass = "max-w-3xl px-4 py-3 rounded-lg";
-        
+
         return message.MessageType switch
         {
             "user" => $"{baseClass} bg-blue-600 text-white",
@@ -408,7 +411,7 @@
         return agent.ColorScheme switch
         {
             "agent-creative" => "text-purple-600",
-            "agent-analytical" => "text-green-600", 
+            "agent-analytical" => "text-green-600",
             "agent-copywriter" => "text-red-600",
             "agent-reviewer" => "text-blue-600",
             "agent-researcher" => "text-cyan-600",
@@ -424,11 +427,11 @@
     private string GetAgentStatusDotClass(AgentConfiguration agent)
     {
         // Show active status with agent's theme color
-        return agent.IsActive 
+        return agent.IsActive
             ? agent.ColorScheme switch
             {
                 "agent-creative" => "bg-purple-500",
-                "agent-analytical" => "bg-green-500", 
+            "agent-analytical" => "bg-green-500",
                 "agent-copywriter" => "bg-red-500",
                 "agent-reviewer" => "bg-blue-500",
                 "agent-researcher" => "bg-cyan-500",

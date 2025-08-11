@@ -14,6 +14,7 @@ I want to do this in the context of a user facing chat application so that we ha
 - We will be using Tailwind styling via CDN
 - We must limit the use of JsInterop and favour server side control. Only fallback to JsInterop if server side control is too problematic.
 - We will use dotnet/C# best practices where ever possible.
+- observe [project structure guidelines](./FEATURE_BASED_ORGANIZATION.md)
 
 ## Style Guide
 - do not use emojis - ever

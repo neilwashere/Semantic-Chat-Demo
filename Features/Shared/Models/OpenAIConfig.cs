@@ -1,4 +1,4 @@
-namespace SemanticChatDemo.Models;
+namespace SemanticChatDemo.Features.Shared.Models;
 
 public class OpenAIConfig
 {

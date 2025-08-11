@@ -1,4 +1,4 @@
-namespace SemanticChatDemo.Models;
+namespace SemanticChatDemo.Features.Chat.Models;
 
 /// <summary>
 /// Represents a persisted conversation for a user

@@ -1,4 +1,4 @@
-namespace SemanticChatDemo.Models;
+namespace SemanticChatDemo.Features.Chat.Models;
 
 /// <summary>
 /// Model for exporting agent conversations to JSON

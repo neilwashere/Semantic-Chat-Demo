@@ -1,9 +1,10 @@
 using SemanticChatDemo.Components;
-using SemanticChatDemo.Models;
-using SemanticChatDemo.Hubs;
-using SemanticChatDemo.Services;
-using SemanticChatDemo.Plugins;
+using SemanticChatDemo.Features.Shared.Models;
+using SemanticChatDemo.Features.Chat.Hubs;
+using SemanticChatDemo.Features.MultiAgent.Hubs;
+using SemanticChatDemo.Features.Shared.Plugins;
 using Microsoft.SemanticKernel;
+using SemanticChatDemo.Features;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,14 +29,9 @@ kernelBuilder.AddOpenAIChatCompletion(
 // Add our weather facts plugin
 kernelBuilder.Plugins.AddFromType<WeatherFactsPlugin>();
 
-// Add ChatService for managing conversations
-builder.Services.AddScoped<ChatService>();
-
-// Add ConversationPersistenceService for JSON storage
-builder.Services.AddScoped<ConversationPersistenceService>();
-
-// Add AgentService for multi-agent management
-builder.Services.AddScoped<AgentService>();
+// Add Feature services
+builder.Services.AddChatFeature();
+builder.Services.AddMultiAgentFeature();
 
 var app = builder.Build();
 

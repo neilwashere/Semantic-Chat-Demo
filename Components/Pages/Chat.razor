@@ -53,7 +53,9 @@
     <div class="fixed bottom-0 left-64 right-0 bg-white border-t border-gray-200 px-6 py-4 shadow-lg">
         <div class="flex space-x-4">
             <input @bind="messageInput"
+                   @bind:event="oninput"
                    @onkeypress="HandleKeyPress"
+                   @ref="messageInputRef"
                    placeholder="Type your message..."
                    disabled="@(_hubConnection?.State != HubConnectionState.Connected)"
                    class="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed" />
@@ -71,6 +73,7 @@
     private HubConnection? _hubConnection;
     private List<ChatMessage> messages = new();
     private string messageInput = string.Empty;
+    private ElementReference messageInputRef;
 
     public bool IsConnected =>
         _hubConnection?.State == HubConnectionState.Connected;
@@ -90,6 +93,12 @@
             messages.Add(message);
             InvokeAsync(StateHasChanged);
             InvokeAsync(ScrollToBottom);
+
+            // Refocus input after assistant responds
+            if (message.Role == "assistant")
+            {
+                InvokeAsync(FocusInput);
+            }
         });
 
         try
@@ -109,12 +118,33 @@
         }
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await FocusInput();
+        }
+    }
+
+    private async Task FocusInput()
+    {
+        try
+        {
+            await messageInputRef.FocusAsync();
+        }
+        catch
+        {
+            // Ignore focus errors - they can happen during rapid state changes
+        }
+    }
+
     private async Task SendMessage()
     {
         if (_hubConnection is not null && !string.IsNullOrWhiteSpace(messageInput))
         {
             await _hubConnection.SendAsync("SendMessage", messageInput);
             messageInput = string.Empty;
+            await FocusInput();
         }
     }
 

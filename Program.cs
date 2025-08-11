@@ -1,5 +1,6 @@
 using semantic_chat_demo.Components;
 using semantic_chat_demo.Models;
+using semantic_chat_demo.Hubs;
 using Microsoft.SemanticKernel;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,9 +30,11 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
+    app.UseHttpsRedirection();
 }
 
-app.UseHttpsRedirection();
+// Only use HTTPS redirection in production
+// In development, we'll allow both HTTP and HTTPS
 
 
 app.UseAntiforgery();
@@ -40,7 +43,7 @@ app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
-// Map SignalR hubs (will be added when we create ChatHub)
-// app.MapHub<ChatHub>("/chathub");
+// Map SignalR hubs
+app.MapHub<ChatHub>("/chathub");
 
 app.Run();

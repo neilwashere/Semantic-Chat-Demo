@@ -1,30 +1,29 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">semantic-chat-demo</a>
+﻿<div class="bg-gray-900 text-white p-4">
+    <div class="flex items-center">
+        <a class="text-xl font-bold text-white hover:text-gray-300" href="">Semantic Chat Demo</a>
     </div>
 </div>
 
-<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+<nav class="bg-gray-800 min-h-screen p-4">
+    <div class="space-y-2">
+        <NavLink class="block px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white rounded-md transition-colors"
+                 href="" Match="NavLinkMatch.All">
+            🏠 Home
+        </NavLink>
 
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="nav flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
+        <NavLink class="block px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white rounded-md transition-colors"
+                 href="chat">
+            💬 Chat
+        </NavLink>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
-            </NavLink>
-        </div>
+        <NavLink class="block px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white rounded-md transition-colors"
+                 href="counter">
+            🔢 Counter
+        </NavLink>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
-            </NavLink>
-        </div>
-    </nav>
-</div>
-
+        <NavLink class="block px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white rounded-md transition-colors"
+                 href="weather">
+            🌤️ Weather
+        </NavLink>
+    </div>
+</nav>

@@ -1,0 +1,150 @@
+@page "/chat"
+@using Microsoft.AspNetCore.SignalR.Client
+@using semantic_chat_demo.Models
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+@rendermode InteractiveServer
+
+<PageTitle>Semantic Chat</PageTitle>
+
+<div class="h-screen flex flex-col bg-gray-50 relative">
+    <!-- Header -->
+    <div class="bg-white shadow-sm border-b border-gray-200 px-6 py-4 flex-shrink-0">
+        <h1 class="text-2xl font-semibold text-gray-900">Semantic Chat Demo</h1>
+        <p class="text-sm text-gray-600 mt-1">
+            Status:
+            <span class="@(_hubConnection?.State == HubConnectionState.Connected ? "text-green-600" : "text-red-600")">
+                @(_hubConnection?.State.ToString() ?? "Disconnected")
+            </span>
+        </p>
+    </div>
+
+    <!-- Chat Messages Area -->
+    <div class="flex-1 overflow-y-auto p-6 space-y-4 pb-24" id="chat-container">
+        @if (messages.Any())
+        {
+            @foreach (var message in messages)
+            {
+                <div class="@(message.Role == "user" ? "flex justify-end" : "flex justify-start")">
+                    <div class="@(message.Role == "user" ?
+                        "bg-blue-500 text-white rounded-lg rounded-br-none px-4 py-2 max-w-xs lg:max-w-md" :
+                        message.Role == "system" ?
+                        "bg-red-100 text-red-800 rounded-lg px-4 py-2 max-w-xs lg:max-w-md border border-red-200" :
+                        "bg-white text-gray-900 rounded-lg rounded-bl-none px-4 py-2 max-w-xs lg:max-w-md shadow-sm border")">
+                        <div class="text-sm whitespace-pre-wrap">@message.Content</div>
+                        <div class="text-xs opacity-70 mt-1">
+                            @message.Timestamp.ToString("HH:mm")
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="text-center text-gray-500 py-8">
+                <div class="text-lg font-medium">Welcome to Semantic Chat!</div>
+                <div class="text-sm mt-2">Start a conversation by typing a message below.</div>
+            </div>
+        }
+    </div>
+
+    <!-- Input Area - Fixed at bottom -->
+    <div class="fixed bottom-0 left-64 right-0 bg-white border-t border-gray-200 px-6 py-4 shadow-lg">
+        <div class="flex space-x-4">
+            <input @bind="messageInput"
+                   @onkeypress="HandleKeyPress"
+                   placeholder="Type your message..."
+                   disabled="@(_hubConnection?.State != HubConnectionState.Connected)"
+                   class="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed" />
+
+            <button @onclick="SendMessage"
+                    disabled="@(IsConnected == false || string.IsNullOrWhiteSpace(messageInput))"
+                    class="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium py-2 px-6 rounded-lg transition-colors">
+                Send
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private HubConnection? _hubConnection;
+    private List<ChatMessage> messages = new();
+    private string messageInput = string.Empty;
+
+    public bool IsConnected =>
+        _hubConnection?.State == HubConnectionState.Connected;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _hubConnection = new HubConnectionBuilder()
+            .WithUrl(Navigation.ToAbsoluteUri("/chathub"))
+            .ConfigureLogging(logging =>
+            {
+                logging.SetMinimumLevel(LogLevel.Information);
+            })
+            .Build();
+
+        _hubConnection.On<ChatMessage>("ReceiveMessage", (message) =>
+        {
+            messages.Add(message);
+            InvokeAsync(StateHasChanged);
+            InvokeAsync(ScrollToBottom);
+        });
+
+        try
+        {
+            await _hubConnection.StartAsync();
+        }
+        catch (Exception ex)
+        {
+            // Log the error and show a user-friendly message
+            var errorMessage = new ChatMessage
+            {
+                Content = $"Failed to connect to chat service: {ex.Message}",
+                Role = "system"
+            };
+            messages.Add(errorMessage);
+            StateHasChanged();
+        }
+    }
+
+    private async Task SendMessage()
+    {
+        if (_hubConnection is not null && !string.IsNullOrWhiteSpace(messageInput))
+        {
+            await _hubConnection.SendAsync("SendMessage", messageInput);
+            messageInput = string.Empty;
+        }
+    }
+
+    private async Task HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !e.ShiftKey)
+        {
+            await SendMessage();
+        }
+    }
+
+    private async Task ScrollToBottom()
+    {
+        await JSRuntime.InvokeVoidAsync("scrollToBottom", "chat-container");
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_hubConnection is not null)
+        {
+            await _hubConnection.DisposeAsync();
+        }
+    }
+}
+
+<script>
+    window.scrollToBottom = (elementId) => {
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.scrollTop = element.scrollHeight;
+        }
+    };
+</script>

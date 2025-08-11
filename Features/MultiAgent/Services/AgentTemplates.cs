@@ -1,4 +1,4 @@
-using SemanticChatDemo.Features.MultiAgent.Models;
+using SemanticChatDemo.Features.Shared.Models;
 
 namespace SemanticChatDemo.Features.MultiAgent.Services;
 
@@ -37,7 +37,7 @@ public static class AgentTemplates
         return $"""
         {agent.Instructions}
         {GetPersonalityPreservationFragment()}
-        
+
         YOUR SPECIFIC ROLE: You are {agent.Name} - {agent.Description}
         YOUR SPEAKING STYLE: {agent.PersonalityAnchoring}
         """;

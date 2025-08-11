@@ -1,4 +1,4 @@
-namespace SemanticChatDemo.Features.MultiAgent.Models;
+namespace SemanticChatDemo.Features.Shared.Models;
 
 /// <summary>
 /// Configuration for an AI agent including persona and visual styling

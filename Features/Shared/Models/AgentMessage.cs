@@ -1,4 +1,4 @@
-namespace SemanticChatDemo.Features.MultiAgent.Models;
+namespace SemanticChatDemo.Features.Shared.Models;
 
 /// <summary>
 /// Represents a message from an AI agent in a multi-agent conversation

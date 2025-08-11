@@ -1,5 +1,6 @@
 using SemanticChatDemo.Features.Chat.Services;
 using SemanticChatDemo.Features.MultiAgent.Services;
+using SemanticChatDemo.Features.Orchestration.Services;
 
 namespace SemanticChatDemo.Features;
 
@@ -28,11 +29,11 @@ public static class ServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Register all Orchestration feature services (future)
+    /// Register all Orchestration feature services
     /// </summary>
     public static IServiceCollection AddOrchestrationFeature(this IServiceCollection services)
     {
-        // Future orchestration services will be registered here
+        services.AddScoped<OrchestrationService>();
         return services;
     }
 }

@@ -2,6 +2,7 @@ using SemanticChatDemo.Components;
 using SemanticChatDemo.Features.Shared.Models;
 using SemanticChatDemo.Features.Chat.Hubs;
 using SemanticChatDemo.Features.MultiAgent.Hubs;
+using SemanticChatDemo.Features.Orchestration.Hubs;
 using SemanticChatDemo.Features.Shared.Plugins;
 using Microsoft.SemanticKernel;
 using SemanticChatDemo.Features;
@@ -32,6 +33,7 @@ kernelBuilder.Plugins.AddFromType<WeatherFactsPlugin>();
 // Add Feature services
 builder.Services.AddChatFeature();
 builder.Services.AddMultiAgentFeature();
+builder.Services.AddOrchestrationFeature();
 
 var app = builder.Build();
 
@@ -57,5 +59,6 @@ app.MapRazorComponents<App>()
 // Map SignalR hubs
 app.MapHub<ChatHub>("/chathub");
 app.MapHub<MultiAgentHub>("/multiagenthub");
+app.MapHub<OrchestrationHub>("/orchestrationhub");
 
 app.Run();

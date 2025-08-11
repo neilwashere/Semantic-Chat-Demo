@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.SemanticKernel.ChatCompletion;
-using SemanticChatDemo.Features.MultiAgent.Models;
+using SemanticChatDemo.Features.Shared.Models;
 using SemanticChatDemo.Features.MultiAgent.Services;
 
 namespace SemanticChatDemo.Features.MultiAgent.Hubs;

@@ -15,6 +15,7 @@
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.OpenAI" Version="1.61.0" />
     <PackageReference Include="Microsoft.SemanticKernel.Agents.Abstractions" Version="1.61.0" />
     <PackageReference Include="Microsoft.SemanticKernel.Agents.Core" Version="1.61.0" />
+    <PackageReference Include="Microsoft.SemanticKernel.Agents.Orchestration" Version="1.61.0-preview" />
   </ItemGroup>
 
   <ItemGroup>

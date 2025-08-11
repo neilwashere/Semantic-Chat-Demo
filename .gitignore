@@ -486,3 +486,6 @@ $RECYCLE.BIN/
 # Solution files
 *.sln
 *.sln.ide
+
+# secrets
+appsettings.Development.json

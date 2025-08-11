@@ -11,19 +11,29 @@
 <div class="h-screen flex flex-col bg-gray-50 relative">
     <!-- Header -->
     <div class="bg-white shadow-sm border-b border-gray-200 px-6 py-4 flex-shrink-0">
-        <h1 class="text-2xl font-semibold text-gray-900">Semantic Chat Demo</h1>
-        <p class="text-sm text-gray-600 mt-1">
-            Status:
-            <span class="@(_hubConnection?.State == HubConnectionState.Connected ? "text-green-600" : "text-red-600")">
-                @(_hubConnection?.State.ToString() ?? "Disconnected")
-            </span>
-            @if (!string.IsNullOrEmpty(userId))
-            {
-                <span class="ml-4 text-gray-500">
-                    User: <span class="font-mono text-xs">@userId</span>
-                </span>
-            }
-        </p>
+        <div class="flex justify-between items-start">
+            <div>
+                <h1 class="text-2xl font-semibold text-gray-900">Semantic Chat Demo</h1>
+                <p class="text-sm text-gray-600 mt-1">
+                    Status:
+                    <span
+                        class="@(_hubConnection?.State == HubConnectionState.Connected ? "text-green-600" : "text-red-600")">
+                        @(_hubConnection?.State.ToString() ?? "Disconnected")
+                    </span>
+                    @if (!string.IsNullOrEmpty(userId))
+                    {
+                        <span class="ml-4 text-gray-500">
+                            User: <span class="font-mono text-xs">@userId</span>
+                        </span>
+                    }
+                </p>
+            </div>
+            <button @onclick="ClearHistory"
+                disabled="@(_hubConnection?.State != HubConnectionState.Connected || string.IsNullOrEmpty(userId))"
+                class="px-3 py-1 text-sm bg-red-100 text-red-700 rounded-md hover:bg-red-200 disabled:opacity-50 disabled:cursor-not-allowed border border-red-200">
+                Clear Chat
+            </button>
+        </div>
     </div>
 
     <!-- Chat Messages Area -->
@@ -237,17 +247,17 @@
     {
         // Clear current messages and load existing ones
         messages.Clear();
-        
+
         foreach (var msg in existingMessages)
         {
             // Skip empty messages (streaming artifacts)
             if (string.IsNullOrWhiteSpace(msg.Content))
                 continue;
-                
+
             // Skip tool messages (function call results)
             if (msg.Role == "tool")
                 continue;
-                
+
             messages.Add(new ChatMessage
             {
                 Id = msg.Id,

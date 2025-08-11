@@ -71,6 +71,8 @@
 - [x] Load conversation history on user reconnect
 - [x] Filter out streaming artifacts and tool messages from persistence
 - [x] Implement incremental conversation saving to prevent duplication
+- [x] Add clear chat button with confirmation dialog
+- [x] Exclude conversation data from git tracking (.gitignore)
 
 ## Next Phases (Planned)
 - **Phase 2**: AI Orchestration (Function calling, RAG, External search)

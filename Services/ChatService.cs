@@ -20,12 +20,12 @@ public class ChatService(Kernel kernel, ConversationPersistenceService persisten
 
         // Try to load existing conversation from persistence
         var conversationData = await persistenceService.LoadConversationAsync(userId);
-        
+
         if (conversationData != null)
         {
             // Restore chat history from persisted data
             var restoredHistory = new ChatHistory(conversationData.SystemPrompt);
-            
+
             foreach (var message in conversationData.Messages)
             {
                 switch (message.Role.ToLowerInvariant())
@@ -41,9 +41,9 @@ public class ChatService(Kernel kernel, ConversationPersistenceService persisten
                         break;
                 }
             }
-            
+
             conversations.TryAdd(userId, restoredHistory);
-            logger.LogInformation("Restored conversation for user {UserId} with {MessageCount} messages", 
+            logger.LogInformation("Restored conversation for user {UserId} with {MessageCount} messages",
                 userId, conversationData.Messages.Count);
             return restoredHistory;
         }
@@ -59,10 +59,10 @@ public class ChatService(Kernel kernel, ConversationPersistenceService persisten
 
         var newChatHistory = new ChatHistory(prompt ?? systemPromptTemplate);
         conversations.TryAdd(userId, newChatHistory);
-        
+
         // Save the initial conversation with system prompt
         await SaveConversationAsync(userId, newChatHistory, prompt ?? systemPromptTemplate);
-        
+
         logger.LogInformation("Created new conversation for user {UserId}", userId);
         return newChatHistory;
     }
@@ -95,7 +95,7 @@ public class ChatService(Kernel kernel, ConversationPersistenceService persisten
 
         // Add complete response to history if successful
         AddToHistorySafely(chatHistory, fullResponse, userId);
-        
+
         // Save conversation after each message exchange
         await SaveConversationAfterMessage(userId, chatHistory);
     }
@@ -169,7 +169,7 @@ public class ChatService(Kernel kernel, ConversationPersistenceService persisten
     public async Task ClearHistory(string userId)
     {
         conversations.TryRemove(userId, out _);
-        
+
         // Also clear persisted data
         try
         {
@@ -179,7 +179,7 @@ public class ChatService(Kernel kernel, ConversationPersistenceService persisten
         {
             logger.LogError(ex, "Error clearing persisted conversation for user {UserId}", userId);
         }
-        
+
         logger.LogInformation("Cleared chat history for user {UserId}", userId);
     }
 
@@ -241,7 +241,7 @@ public class ChatService(Kernel kernel, ConversationPersistenceService persisten
         {
             // Load existing conversation to preserve creation date and system prompt
             var existingData = await persistenceService.LoadConversationAsync(userId);
-            
+
             if (existingData == null)
             {
                 // First time saving - create new conversation data
@@ -252,7 +252,7 @@ public class ChatService(Kernel kernel, ConversationPersistenceService persisten
                     SystemPrompt = chatHistory.FirstOrDefault()?.Content ?? "",
                     Messages = ConvertChatHistoryToMessages(chatHistory)
                 };
-                
+
                 await persistenceService.SaveConversationAsync(conversationData);
                 return;
             }
@@ -273,8 +273,8 @@ public class ChatService(Kernel kernel, ConversationPersistenceService persisten
                     continue;
 
                 // Check if this message content already exists in persisted data
-                var isDuplicate = existingData.Messages.Any(existing => 
-                    existing.Content.Trim() == messageContent && 
+                var isDuplicate = existingData.Messages.Any(existing =>
+                    existing.Content.Trim() == messageContent &&
                     existing.Role == message.Role.ToString().ToLowerInvariant());
 
                 if (!isDuplicate)
@@ -303,21 +303,21 @@ public class ChatService(Kernel kernel, ConversationPersistenceService persisten
     private static List<ConversationMessage> ConvertChatHistoryToMessages(ChatHistory chatHistory)
     {
         var messages = new List<ConversationMessage>();
-        
+
         foreach (var message in chatHistory)
         {
             // Skip system messages as they're stored separately
             if (message.Role == Microsoft.SemanticKernel.ChatCompletion.AuthorRole.System)
                 continue;
-                
+
             // Skip tool messages - they are intermediate results, not final messages
             if (message.Role == Microsoft.SemanticKernel.ChatCompletion.AuthorRole.Tool)
                 continue;
-                
+
             // Skip empty messages (streaming placeholders)
             if (string.IsNullOrWhiteSpace(message.Content))
                 continue;
-                
+
             messages.Add(new ConversationMessage
             {
                 Id = Guid.NewGuid().ToString(),
@@ -326,7 +326,7 @@ public class ChatService(Kernel kernel, ConversationPersistenceService persisten
                 Timestamp = DateTime.UtcNow
             });
         }
-        
+
         return messages;
     }
 }

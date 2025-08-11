@@ -489,3 +489,6 @@ $RECYCLE.BIN/
 
 # secrets
 appsettings.Development.json
+
+# User conversation data - contains private user conversations
+Data/Conversations/

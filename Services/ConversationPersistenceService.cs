@@ -23,7 +23,7 @@ public class ConversationPersistenceService(ILogger<ConversationPersistenceServi
         try
         {
             var filePath = GetConversationFilePath(userId);
-            
+
             if (!File.Exists(filePath))
             {
                 logger.LogInformation("No existing conversation found for user {UserId}", userId);
@@ -32,10 +32,10 @@ public class ConversationPersistenceService(ILogger<ConversationPersistenceServi
 
             var jsonContent = await File.ReadAllTextAsync(filePath);
             var conversationData = JsonSerializer.Deserialize<ConversationData>(jsonContent, jsonOptions);
-            
-            logger.LogInformation("Loaded conversation for user {UserId} with {MessageCount} messages", 
+
+            logger.LogInformation("Loaded conversation for user {UserId} with {MessageCount} messages",
                 userId, conversationData?.Messages.Count ?? 0);
-            
+
             return conversationData;
         }
         catch (Exception ex)
@@ -79,13 +79,13 @@ public class ConversationPersistenceService(ILogger<ConversationPersistenceServi
         try
         {
             var filePath = GetConversationFilePath(userId);
-            
+
             if (File.Exists(filePath))
             {
                 File.Delete(filePath);
                 logger.LogInformation("Deleted conversation for user {UserId}", userId);
             }
-            
+
             await Task.CompletedTask;
         }
         catch (Exception ex)

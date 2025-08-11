@@ -98,7 +98,7 @@ public class ChatHub(ChatService chatService, ILogger<ChatHub> logger) : Hub
         {
             var existingMessages = await chatService.GetExistingMessagesAsync(userId);
             await Clients.Caller.SendAsync("ExistingMessagesLoaded", existingMessages);
-            logger.LogInformation("Loaded {MessageCount} existing messages for user {UserId}", 
+            logger.LogInformation("Loaded {MessageCount} existing messages for user {UserId}",
                 existingMessages.Count, userId);
         }
         catch (Exception ex)

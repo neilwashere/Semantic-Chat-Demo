@@ -32,9 +32,19 @@
                         message.Role == "system" ?
                         "bg-red-100 text-red-800 rounded-lg px-4 py-2 max-w-xs lg:max-w-md border border-red-200" :
                         "bg-white text-gray-900 rounded-lg rounded-bl-none px-4 py-2 max-w-xs lg:max-w-md shadow-sm border")">
-                        <div class="text-sm whitespace-pre-wrap">@message.Content</div>
-                        <div class="text-xs opacity-70 mt-1">
-                            @message.Timestamp.ToString("HH:mm")
+                        <div class="text-sm whitespace-pre-wrap">
+                            @message.Content
+                            @if (message.IsStreaming && !message.IsComplete)
+                            {
+                                <span class="inline-block w-2 h-4 bg-gray-400 ml-1 animate-pulse"></span>
+                            }
+                        </div>
+                        <div class="text-xs opacity-70 mt-1 flex justify-between items-center">
+                            <span>@message.Timestamp.ToString("HH:mm")</span>
+                            @if (message.IsStreaming && !message.IsComplete)
+                            {
+                                <span class="text-xs text-gray-500">Typing...</span>
+                            }
                         </div>
                     </div>
                 </div>
@@ -94,11 +104,30 @@
             InvokeAsync(StateHasChanged);
             InvokeAsync(ScrollToBottom);
 
-            // Refocus input after assistant responds
-            if (message.Role == "assistant")
+            // Refocus input after assistant completes (not during streaming)
+            if (message.Role == "assistant" && message.IsComplete)
             {
                 InvokeAsync(FocusInput);
             }
+        });
+
+        _hubConnection.On<StreamingChatMessage>("ReceiveStreamingChunk", (streamingMessage) =>
+        {
+            HandleStreamingChunk(streamingMessage);
+            InvokeAsync(StateHasChanged);
+            InvokeAsync(ScrollToBottom);
+        });
+
+        _hubConnection.On("HistoryCleared", () =>
+        {
+            messages.Clear();
+            InvokeAsync(StateHasChanged);
+        });
+
+        _hubConnection.On<object>("HistoryInfo", (info) =>
+        {
+            // Handle history info if needed
+            InvokeAsync(StateHasChanged);
         });
 
         try
@@ -153,6 +182,35 @@
         if (e.Key == "Enter" && !e.ShiftKey)
         {
             await SendMessage();
+        }
+    }
+
+    private void HandleStreamingChunk(StreamingChatMessage streamingMessage)
+    {
+        // Find existing streaming message or create a new one
+        var existingMessage = messages.FirstOrDefault(m =>
+            m.Id == streamingMessage.MessageId);
+
+        if (existingMessage != null)
+        {
+            // Update existing streaming message
+            existingMessage.Content += streamingMessage.Content;
+            existingMessage.IsComplete = streamingMessage.IsComplete;
+            existingMessage.IsStreaming = !streamingMessage.IsComplete;
+        }
+        else
+        {
+            // Create new streaming message
+            var newMessage = new ChatMessage
+            {
+                Id = streamingMessage.MessageId,
+                Content = streamingMessage.Content,
+                Role = "assistant",
+                Timestamp = DateTime.Now,
+                IsStreaming = !streamingMessage.IsComplete,
+                IsComplete = streamingMessage.IsComplete
+            };
+            messages.Add(newMessage);
         }
     }
 

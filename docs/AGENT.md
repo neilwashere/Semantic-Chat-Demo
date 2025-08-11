@@ -19,6 +19,9 @@ I want to do this in the context of a user facing chat application so that we ha
 - do not use emojis - ever
 - favour functional style over imperitive (but be pragmatic)
 - all commit messages must use [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/#specification)
+- favour primary contructor pattern
+- avoid using underscore as local var name prefix
+- always document classes and interfaces
 
 ## Semantic Kernel Examples
 As we progress, we should make ourselves familiar with how Semantic Kernel does stuff. Each of the [concepts](./CONCEPT_PHASES.md) are lifted from a [project we have locally](../../semantic-kernel/dotnet/samples/Concepts/) along with various [GettingStared{With...}](../../semantic-kernel/dotnet/samples/) in the samples directory.

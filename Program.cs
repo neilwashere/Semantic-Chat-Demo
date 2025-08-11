@@ -1,6 +1,7 @@
 using semantic_chat_demo.Components;
 using semantic_chat_demo.Models;
 using semantic_chat_demo.Hubs;
+using semantic_chat_demo.Services;
 using Microsoft.SemanticKernel;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,6 +22,9 @@ builder.Services.AddKernel()
     .AddOpenAIChatCompletion(
         modelId: builder.Configuration["OpenAI:ModelId"] ?? "gpt-4o-mini",
         apiKey: builder.Configuration["OpenAI:ApiKey"] ?? throw new InvalidOperationException("OpenAI API key is required"));
+
+// Add ChatService for managing conversations
+builder.Services.AddScoped<ChatService>();
 
 var app = builder.Build();
 

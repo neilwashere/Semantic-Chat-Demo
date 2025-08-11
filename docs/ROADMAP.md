@@ -9,9 +9,10 @@
 - ✅ Clean, focused application (removed template components)
 - ✅ Professional home page with learning roadmap
 - ✅ Polished chat UX with auto-focus and reactive controls
-- ✅ **Phase 1.1, 1.2 & 1.3 complete** - streaming chat with conversation memory
+- ✅ **Phase 1.1, 1.2, 1.3 & 1.4 complete** - streaming chat with auto-invoked function calling
 - ✅ Real-time streaming responses with visual indicators
 - ✅ Conversation history management per connection
+- ✅ First native C# plugin integrated and working
 
 ## Technical Architecture Decisions
 - **Framework**: .NET 9 Blazor Server
@@ -53,9 +54,11 @@
 - [x] Basic error handling and validation
 
 ### 1.4 First Plugin Integration
-- [ ] Create simple native C# plugin
-- [ ] Import plugin into Kernel
-- [ ] Test function calling from chat
+- [x] Create simple native C# plugin (`WeatherFactsPlugin`)
+- [x] Register plugin with the Kernel
+- [x] Enable auto-invoking function calls in `ChatService`
+- [x] Test function calling from chat with bombastic weather facts
+- [x] Update system prompt to guide function usage
 
 ### 1.5 Enhanced Chat Features
 - [ ] Implement prompt templating (Handlebars)

@@ -1,19 +1,21 @@
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
+using Microsoft.SemanticKernel.Connectors.OpenAI;
 using System.Collections.Concurrent;
-using System.Text;
 
 namespace semantic_chat_demo.Services;
 
 public class ChatService(Kernel kernel, ILogger<ChatService> logger)
 {
-
     // Store chat history per connection ID
     private readonly ConcurrentDictionary<string, ChatHistory> _conversations = new();
 
     public ChatHistory GetOrCreateChatHistory(string connectionId)
     {
-        return _conversations.GetOrAdd(connectionId, _ => new ChatHistory());
+        return _conversations.GetOrAdd(connectionId, _ => new ChatHistory(
+            "You are a helpful assistant with access to bombastic weather facts. " +
+            "When users ask about weather or want interesting facts, you can use your weather functions. " +
+            "Always be enthusiastic and engaging in your responses!"));
     }
 
     public async IAsyncEnumerable<string> StreamResponseAsync(string connectionId, string userMessage)
@@ -26,12 +28,10 @@ public class ChatService(Kernel kernel, ILogger<ChatService> logger)
         logger.LogInformation("Streaming response for connection {ConnectionId}, message: {Message}",
             connectionId, userMessage);
 
-        var prompt = BuildPromptFromHistory(chatHistory);
-        var fullResponse = string.Empty;
-
         // Get streaming enumerable first, handle errors separately
-        var streamingResponse = GetStreamingResponseSafely(prompt, connectionId);
+        var streamingResponse = GetStreamingResponseSafely(chatHistory, connectionId);
 
+        var fullResponse = string.Empty;
         await foreach (var chunk in streamingResponse)
         {
             if (chunk.StartsWith("ERROR:"))
@@ -48,23 +48,23 @@ public class ChatService(Kernel kernel, ILogger<ChatService> logger)
         AddToHistorySafely(chatHistory, fullResponse, connectionId);
     }
 
-    private async IAsyncEnumerable<string> GetStreamingResponseSafely(string prompt, string connectionId)
+    private async IAsyncEnumerable<string> GetStreamingResponseSafely(ChatHistory chatHistory, string connectionId)
     {
-        IAsyncEnumerable<StreamingKernelContent>? kernelStream = null;
+        IAsyncEnumerable<StreamingChatMessageContent>? streamingResponse = null;
 
-        // Try to start streaming
-        kernelStream = TryStartStreaming(prompt, connectionId);
+        // Try to start streaming outside of yield context
+        streamingResponse = TryStartStreamingChat(chatHistory, connectionId);
 
-        if (kernelStream == null)
+        if (streamingResponse == null)
         {
             yield return "ERROR:Sorry, I encountered an error while processing your message.";
             yield break;
         }
 
         // Process the stream
-        await foreach (var chunk in kernelStream)
+        await foreach (var chunk in streamingResponse)
         {
-            var content = chunk.ToString();
+            var content = chunk.Content;
             if (!string.IsNullOrEmpty(content))
             {
                 yield return content;
@@ -72,15 +72,28 @@ public class ChatService(Kernel kernel, ILogger<ChatService> logger)
         }
     }
 
-    private IAsyncEnumerable<StreamingKernelContent>? TryStartStreaming(string prompt, string connectionId)
+    private IAsyncEnumerable<StreamingChatMessageContent>? TryStartStreamingChat(ChatHistory chatHistory, string connectionId)
     {
         try
         {
-            return kernel.InvokePromptStreamingAsync(prompt);
+            // Get the chat completion service from the kernel
+            var chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
+
+            // Set up execution settings to enable automatic function calling
+            var executionSettings = new OpenAIPromptExecutionSettings
+            {
+                ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions
+            };
+
+            // Get streaming response with automatic function calling
+            return chatCompletionService.GetStreamingChatMessageContentsAsync(
+                chatHistory,
+                executionSettings,
+                kernel);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error starting streaming for connection {ConnectionId}", connectionId);
+            logger.LogError(ex, "Error starting streaming chat completion for connection {ConnectionId}", connectionId);
             return null;
         }
     }
@@ -99,20 +112,6 @@ public class ChatService(Kernel kernel, ILogger<ChatService> logger)
                 logger.LogError(ex, "Error adding response to history for connection {ConnectionId}", connectionId);
             }
         }
-    }
-
-    private string BuildPromptFromHistory(ChatHistory chatHistory)
-    {
-        var prompt = new StringBuilder();
-
-        foreach (var message in chatHistory)
-        {
-            var role = message.Role.ToString().ToLowerInvariant();
-            prompt.AppendLine($"{role}: {message.Content}");
-        }
-
-        prompt.AppendLine("assistant:");
-        return prompt.ToString();
     }
 
     public void ClearHistory(string connectionId)

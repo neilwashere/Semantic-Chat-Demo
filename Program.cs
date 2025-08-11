@@ -2,6 +2,7 @@ using semantic_chat_demo.Components;
 using semantic_chat_demo.Models;
 using semantic_chat_demo.Hubs;
 using semantic_chat_demo.Services;
+using semantic_chat_demo.Plugins;
 using Microsoft.SemanticKernel;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,11 +18,15 @@ builder.Services.AddSignalR();
 builder.Services.Configure<OpenAIConfig>(
     builder.Configuration.GetSection("OpenAI"));
 
-// Add Semantic Kernel with OpenAI
-builder.Services.AddKernel()
-    .AddOpenAIChatCompletion(
-        modelId: builder.Configuration["OpenAI:ModelId"] ?? "gpt-4o-mini",
-        apiKey: builder.Configuration["OpenAI:ApiKey"] ?? throw new InvalidOperationException("OpenAI API key is required"));
+// Add Semantic Kernel with OpenAI and plugins
+var kernelBuilder = builder.Services.AddKernel();
+
+kernelBuilder.AddOpenAIChatCompletion(
+    modelId: builder.Configuration["OpenAI:ModelId"] ?? "gpt-4o-mini",
+    apiKey: builder.Configuration["OpenAI:ApiKey"] ?? throw new InvalidOperationException("OpenAI API key is required"));
+
+// Add our weather facts plugin
+kernelBuilder.Plugins.AddFromType<WeatherFactsPlugin>();
 
 // Add ChatService for managing conversations
 builder.Services.AddScoped<ChatService>();

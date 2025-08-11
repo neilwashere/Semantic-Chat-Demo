@@ -95,3 +95,79 @@ h1:focus {
 .agent-reviewer .agent-name {
     color: #2563eb;
 }
+
+/* Agent Status Animations */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Improved Agent Status Bar */
+.agent-status-indicator {
+    transition: all 0.3s ease;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+}
+
+.agent-status-indicator:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Agent Status Cards */
+.bg-white.rounded-lg.px-3.py-2 {
+    transition: all 0.2s ease;
+    border: 1px solid #e5e7eb;
+    max-width: 280px;
+}
+
+.bg-white.rounded-lg.px-3.py-2:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Responsive agent status bar */
+@media (max-width: 768px) {
+    .bg-gray-100.border-b .flex.items-center.justify-between {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .bg-white.rounded-lg.px-3.py-2 {
+        max-width: none;
+        min-width: 200px;
+    }
+}
+
+/* Enhanced Team Selection */
+select {
+    transition: all 0.2s ease;
+    min-width: 180px;
+}
+
+select:hover {
+    border-color: #3b82f6;
+}
+
+/* Message bubble enhancements */
+.max-w-3xl {
+    transition: transform 0.1s ease;
+}
+
+.max-w-3xl:hover {
+    transform: translateY(-1px);
+}
+
+/* Role badge styling */
+.text-xs.px-2.py-1.rounded-full {
+    font-weight: 500;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}

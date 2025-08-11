@@ -17,20 +17,40 @@
 
     <!-- Agent Status Bar -->
     <div class="bg-gray-100 border-b border-gray-200 px-6 py-3 flex-shrink-0">
-        <div class="flex items-center space-x-6">
-            <div class="text-sm font-medium text-gray-700">Active Agents:</div>
-            <!-- Placeholder for agent status indicators -->
-            <div class="flex space-x-4">
-                <div class="flex items-center space-x-2">
-                    <span class="text-lg">🎨</span>
-                    <span class="text-sm text-gray-600">Agent A</span>
-                    <span class="w-2 h-2 bg-gray-400 rounded-full"></span>
+        <div class="flex items-center justify-between flex-wrap gap-4">
+            <div class="flex items-start space-x-6 flex-1 min-w-0">
+                <div class="text-sm font-medium text-gray-700 whitespace-nowrap">Active Agents:</div>
+                <div class="flex flex-wrap gap-4 flex-1">
+                    @if (currentAgents.Any())
+                    {
+                        @foreach (var agent in currentAgents)
+                        {
+                            <div class="flex items-center space-x-2 bg-white rounded-lg px-3 py-2 shadow-sm border min-w-0">
+                                <span class="text-lg flex-shrink-0">@agent.AvatarEmoji</span>
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-sm font-medium @GetAgentStatusNameClass(agent) truncate">@agent.Name</span>
+                                        <span class="w-2 h-2 @GetAgentStatusDotClass(agent) rounded-full flex-shrink-0"></span>
+                                    </div>
+                                    <div class="text-xs text-gray-500 truncate" title="@agent.Description">@agent.Description</div>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <span class="text-sm text-gray-500">No agents configured</span>
+                    }
                 </div>
-                <div class="flex items-center space-x-2">
-                    <span class="text-lg">⚖️</span>
-                    <span class="text-sm text-gray-600">Agent B</span>
-                    <span class="w-2 h-2 bg-gray-400 rounded-full"></span>
-                </div>
+            </div>
+            
+            <!-- Agent Team Selection -->
+            <div class="flex items-center space-x-3 flex-shrink-0">
+                <label class="text-sm font-medium text-gray-700">Team:</label>
+                <select @bind="selectedTeam" @bind:after="OnTeamChanged" class="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="test">Creative + Analytical</option>
+                    <option value="copywriter">CopyWriter + Reviewer</option>
+                </select>
             </div>
         </div>
     </div>
@@ -49,9 +69,13 @@
                             <div class="flex items-center space-x-2 mb-2">
                                 <span class="text-lg">@GetAgentAvatar(message.AgentName)</span>
                                 <span class="font-medium agent-name">@message.AgentName</span>
+                                <span class="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600">@GetAgentRole(message.AgentName)</span>
                                 @if (message.IsStreaming)
                                 {
-                                    <span class="text-xs text-gray-500">typing...</span>
+                                    <span class="text-xs text-gray-500 flex items-center">
+                                        <span class="animate-pulse">●</span>
+                                        <span class="ml-1">thinking...</span>
+                                    </span>
                                 }
                             </div>
                         }
@@ -95,6 +119,13 @@
                    placeholder="Describe a task for the agents to work on..."
                    class="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
 
+            <button @onclick="ClearConversation"
+                    disabled="@(!agentMessages.Any())"
+                    class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                    title="Clear conversation">
+                🗑️
+            </button>
+
             <button @onclick="StartAgentTask"
                     disabled="@(string.IsNullOrWhiteSpace(taskInput))"
                     class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors">
@@ -107,7 +138,9 @@
 @code {
     private HubConnection? _hubConnection;
     private List<AgentMessage> agentMessages = new();
+    private List<AgentConfiguration> currentAgents = new();
     private string taskInput = string.Empty;
+    private string selectedTeam = "test";
     private ElementReference taskInputRef;
 
     public bool IsConnected =>
@@ -139,13 +172,15 @@
 
         _hubConnection.On<List<AgentConfiguration>>("AgentStatusUpdate", (agents) =>
         {
-            // Handle agent status updates if needed
+            currentAgents = agents;
             InvokeAsync(StateHasChanged);
         });
 
         try
         {
             await _hubConnection.StartAsync();
+            // Load default team agents on startup
+            await LoadTeamAgents();
         }
         catch (Exception ex)
         {
@@ -170,6 +205,45 @@
         }
     }
 
+    private async Task OnTeamChanged()
+    {
+        // Clear the current conversation when switching teams
+        agentMessages.Clear();
+        StateHasChanged();
+        
+        // Load the new team's agents
+        await LoadTeamAgents();
+        
+        // Add a system message indicating team change
+        var teamChangeMessage = new AgentMessage
+        {
+            Content = $"🔄 Switched to {GetTeamDisplayName(selectedTeam)} team. Ready for new conversations.",
+            AgentName = "System",
+            MessageType = "system",
+            IsComplete = true
+        };
+        agentMessages.Add(teamChangeMessage);
+        StateHasChanged();
+    }
+
+    private string GetTeamDisplayName(string teamKey)
+    {
+        return teamKey.ToLowerInvariant() switch
+        {
+            "copywriter" => "CopyWriter + Reviewer",
+            "test" => "Creative + Analytical",
+            _ => teamKey
+        };
+    }
+
+    private async Task LoadTeamAgents()
+    {
+        if (_hubConnection is not null && IsConnected)
+        {
+            await _hubConnection.SendAsync("LoadTeamAgents", selectedTeam);
+        }
+    }
+
     private async Task FocusInput()
     {
         try
@@ -182,11 +256,18 @@
         }
     }
 
+    private async Task ClearConversation()
+    {
+        agentMessages.Clear();
+        StateHasChanged();
+        await FocusInput();
+    }
+
     private async Task StartAgentTask()
     {
         if (_hubConnection is not null && !string.IsNullOrWhiteSpace(taskInput))
         {
-            await _hubConnection.SendAsync("StartAgentConversation", taskInput, "test");
+            await _hubConnection.SendAsync("StartAgentConversation", taskInput, selectedTeam);
             taskInput = string.Empty;
             await FocusInput();
         }
@@ -240,32 +321,54 @@
             "user" => $"{baseClass} bg-blue-600 text-white",
             "error" => $"{baseClass} bg-red-100 text-red-800 border border-red-200",
             "system" => $"{baseClass} bg-gray-100 text-gray-700 border border-gray-200 text-center",
-            _ => $"{baseClass} bg-white border shadow-sm {GetAgentColorClass(message.AgentName)}"
+            _ => $"{baseClass} bg-white border shadow-sm {GetAgentColorScheme(message.AgentName)}"
         };
     }
 
-    private string GetAgentColorClass(string agentName)
+    private string GetAgentColorScheme(string agentName)
     {
-        return agentName.ToLowerInvariant() switch
-        {
-            "creativeagent" => "agent-creative",
-            "analyticalagent" => "agent-analytical", 
-            "copywriter" => "agent-copywriter",
-            "reviewer" => "agent-reviewer",
-            _ => "border-gray-200"
-        };
+        var agent = currentAgents.FirstOrDefault(a => a.Name.Equals(agentName, StringComparison.OrdinalIgnoreCase));
+        return agent?.ColorScheme ?? "border-gray-200";
     }
 
     private string GetAgentAvatar(string agentName)
     {
-        return agentName.ToLowerInvariant() switch
+        var agent = currentAgents.FirstOrDefault(a => a.Name.Equals(agentName, StringComparison.OrdinalIgnoreCase));
+        return agent?.AvatarEmoji ?? "🤖";
+    }
+
+    private string GetAgentRole(string agentName)
+    {
+        var agent = currentAgents.FirstOrDefault(a => a.Name.Equals(agentName, StringComparison.OrdinalIgnoreCase));
+        return agent?.Description ?? "AI Agent";
+    }
+
+    private string GetAgentStatusNameClass(AgentConfiguration agent)
+    {
+        // Use the agent's color scheme for the name in the status bar
+        return agent.ColorScheme switch
         {
-            "creativeagent" => "🎨",
-            "analyticalagent" => "⚖️",
-            "copywriter" => "✍️",
-            "reviewer" => "👔",
-            _ => "🤖"
+            "agent-creative" => "text-purple-600",
+            "agent-analytical" => "text-green-600", 
+            "agent-copywriter" => "text-red-600",
+            "agent-reviewer" => "text-blue-600",
+            _ => "text-gray-600"
         };
+    }
+
+    private string GetAgentStatusDotClass(AgentConfiguration agent)
+    {
+        // Show active status with agent's theme color
+        return agent.IsActive 
+            ? agent.ColorScheme switch
+            {
+                "agent-creative" => "bg-purple-500",
+                "agent-analytical" => "bg-green-500", 
+                "agent-copywriter" => "bg-red-500",
+                "agent-reviewer" => "bg-blue-500",
+                _ => "bg-green-500"
+            }
+            : "bg-gray-400";
     }
 
     public async ValueTask DisposeAsync()

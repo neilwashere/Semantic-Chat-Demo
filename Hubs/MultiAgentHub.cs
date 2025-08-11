@@ -11,6 +11,40 @@ namespace SemanticChatDemo.Hubs;
 public class MultiAgentHub(AgentService agentService, ILogger<MultiAgentHub> logger) : Hub
 {
     /// <summary>
+    /// Load agents for a specific team without starting a conversation
+    /// </summary>
+    public async Task LoadTeamAgents(string agentTeam = "test")
+    {
+        try
+        {
+            logger.LogInformation("Loading agents for team: {Team}", agentTeam);
+
+            // Get agent configurations based on team selection
+            var agentConfigurations = agentTeam.ToLowerInvariant() switch
+            {
+                "copywriter" => AgentTemplates.GetCopywriterReviewerTeam(),
+                _ => AgentTemplates.GetTestAgentTeam()
+            };
+
+            // Initialize agents (but don't start conversation)
+            agentService.InitializeAgents(agentConfigurations);
+
+            // Send updated agent configurations to the client
+            await Clients.Caller.SendAsync("AgentStatusUpdate", agentConfigurations);
+
+            logger.LogInformation("Successfully loaded {AgentCount} agents for team: {Team}", 
+                agentConfigurations.Count, agentTeam);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error loading team agents for team: {Team}", agentTeam);
+            
+            // Send empty list on error
+            await Clients.Caller.SendAsync("AgentStatusUpdate", new List<AgentConfiguration>());
+        }
+    }
+
+    /// <summary>
     /// Start a multi-agent conversation with the specified task
     /// </summary>
     public async Task StartAgentConversation(string userTask, string agentTeam = "test")
@@ -28,6 +62,9 @@ public class MultiAgentHub(AgentService agentService, ILogger<MultiAgentHub> log
             };
 
             agentService.InitializeAgents(agentConfigurations);
+
+            // Send updated agent configurations to the client
+            await Clients.Caller.SendAsync("AgentStatusUpdate", agentConfigurations);
 
             // Send user task message
             var userMessage = new AgentMessage
@@ -198,7 +235,7 @@ public class MultiAgentHub(AgentService agentService, ILogger<MultiAgentHub> log
     }
 
     /// <summary>
-    /// Get status of available agents
+    /// Get status of currently initialized agents
     /// </summary>
     public async Task GetAgentStatus()
     {
@@ -210,6 +247,8 @@ public class MultiAgentHub(AgentService agentService, ILogger<MultiAgentHub> log
         catch (Exception ex)
         {
             logger.LogError(ex, "Error getting agent status");
+            // Send empty list on error
+            await Clients.Caller.SendAsync("AgentStatusUpdate", new List<AgentConfiguration>());
         }
     }
 

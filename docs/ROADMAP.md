@@ -9,12 +9,14 @@
 - ✅ Clean, focused application (removed template components)
 - ✅ Professional home page with learning roadmap
 - ✅ Polished chat UX with auto-focus and reactive controls
-- ✅ **Phase 1.1, 1.2, 1.3, 1.4 & 1.5 complete** - streaming chat with persistent user conversations
+- ✅ **Phase 1.1, 1.2, 1.3, 1.4, 1.5 & 2.1 complete** - streaming chat with persistent user conversations and multi-agent orchestration
 - ✅ Real-time streaming responses with visual indicators
 - ✅ Conversation history management with JSON persistence
 - ✅ First native C# plugin integrated and working
 - ✅ Persistent user IDs using browser localStorage
 - ✅ JSON-based conversation storage keyed by user ID
+- ✅ Multi-agent foundation with real-time agent-to-agent conversations
+- ✅ Visual agent distinction with avatars and color schemes
 
 ## Technical Architecture Decisions
 - **Framework**: .NET 9 Blazor Server
@@ -75,10 +77,56 @@
 - [x] Exclude conversation data from git tracking (.gitignore)
 
 ## Next Phases (Planned)
-- **Phase 2**: AI Orchestration (Function calling, RAG, External search)
-- **Phase 3**: Agent Architecture (Single agent, Multi-agent collaboration)
+- **Phase 2**: AI Orchestration (Multi-agent collaboration, Human-in-the-loop)
+- **Phase 3**: Agent Architecture (Custom agent teams, Advanced workflows)
 - **Phase 4**: Advanced Capabilities (Multi-modal, Processes)
 - **Phase 5**: Production Ready Features (Login, Database, etc.)
+
+## Phase 2: AI Orchestration
+
+### 2.1 Multi-Agent Foundation
+- [x] Create "Agent Teams" navigation section
+- [x] Build MultiAgentChat.razor component with distinct UI design
+- [x] Implement AgentService for managing multiple ChatCompletionAgents
+- [x] Create agent configuration models with visual styling
+- [x] Add basic agent-to-agent conversation flow
+- [x] Implement visual distinction system (avatars, colors, message styling)
+- [x] Test with simple two-agent conversations
+- [x] Add multi-agent SignalR hub for real-time communication
+- [x] Implement turn-taking mechanism for agent deliberation
+
+### 2.2 Human-in-the-Loop Orchestration
+- [ ] Integrate Semantic Kernel's GroupChatOrchestration
+- [ ] Implement custom HumanInTheLoopChatManager
+- [ ] Create orchestration workflow service
+- [ ] Add "Human Input Required" message types to UI
+- [ ] Implement user response handling and workflow continuation
+- [ ] Add termination logic based on user satisfaction
+- [ ] Create CopyWriter + Reviewer agent team configuration
+- [ ] Improve agent personality consistency (prevent analytical convergence)
+
+### 2.3 Enhanced UX & Multiple Workflows
+- [ ] Add agent team selection (multiple predefined teams)
+- [ ] Enhance UI with progress indicators and workflow status
+- [ ] Implement different orchestration patterns (analyst/critic, researcher/fact-checker)
+- [ ] Add workflow templates and task guidance
+- [ ] Improve error handling and recovery mechanisms
+- [ ] Add comprehensive logging and monitoring
+
+## Phase 3: Agent Architecture
+
+### 3.1 Custom Agent Teams
+- [ ] User interface for creating custom agent configurations
+- [ ] Agent template library and sharing system
+- [ ] Advanced agent personality and instruction management
+- [ ] Custom workflow pattern designer
+
+### 3.2 Multi-Agent Persistence
+- [ ] Extend JSON storage to handle multi-agent conversations
+- [ ] Agent team configuration persistence
+- [ ] Multi-agent conversation history and replay
+
+## Phase 4: Advanced Capabilities
 
 ## Phase 5: Production Ready Features
 - [ ] Implement user authentication with ASP.NET Core Identity

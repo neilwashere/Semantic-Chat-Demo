@@ -1,0 +1,287 @@
+@page "/agent-teams"
+@using Microsoft.AspNetCore.SignalR.Client
+@using SemanticChatDemo.Models
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+@rendermode InteractiveServer
+
+<div class="h-screen flex flex-col bg-gray-50 relative">
+    <!-- Header -->
+    <div class="bg-white shadow-sm border-b border-gray-200 px-6 py-4 flex-shrink-0">
+        <h1 class="text-2xl font-semibold text-gray-900">Multi-Agent Orchestration</h1>
+        <p class="text-sm text-gray-600 mt-1">
+            Watch AI agents collaborate and deliberate in real-time
+        </p>
+    </div>
+
+    <!-- Agent Status Bar -->
+    <div class="bg-gray-100 border-b border-gray-200 px-6 py-3 flex-shrink-0">
+        <div class="flex items-center space-x-6">
+            <div class="text-sm font-medium text-gray-700">Active Agents:</div>
+            <!-- Placeholder for agent status indicators -->
+            <div class="flex space-x-4">
+                <div class="flex items-center space-x-2">
+                    <span class="text-lg">🎨</span>
+                    <span class="text-sm text-gray-600">Agent A</span>
+                    <span class="w-2 h-2 bg-gray-400 rounded-full"></span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="text-lg">⚖️</span>
+                    <span class="text-sm text-gray-600">Agent B</span>
+                    <span class="w-2 h-2 bg-gray-400 rounded-full"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Messages Area -->
+    <div class="flex-1 overflow-y-auto p-6 space-y-4 pb-24" id="agent-chat-container">
+        @if (agentMessages.Any())
+        {
+            @foreach (var message in agentMessages)
+            {
+                <div class="@GetMessageContainerClass(message)">
+                    <div class="@GetMessageBubbleClass(message)">
+                        <!-- Agent Header -->
+                        @if (message.MessageType == "agent")
+                        {
+                            <div class="flex items-center space-x-2 mb-2">
+                                <span class="text-lg">@GetAgentAvatar(message.AgentName)</span>
+                                <span class="font-medium agent-name">@message.AgentName</span>
+                                @if (message.IsStreaming)
+                                {
+                                    <span class="text-xs text-gray-500">typing...</span>
+                                }
+                            </div>
+                        }
+                        else if (message.MessageType == "user")
+                        {
+                            <div class="flex items-center space-x-2 mb-2">
+                                <span class="text-lg">👤</span>
+                                <span class="font-medium text-blue-600">@message.AgentName</span>
+                            </div>
+                        }
+                        else if (message.MessageType == "system")
+                        {
+                            <div class="flex items-center space-x-2 mb-2">
+                                <span class="text-lg">⚙️</span>
+                                <span class="font-medium text-gray-600">@message.AgentName</span>
+                            </div>
+                        }
+                        
+                        <!-- Message Content -->
+                        <div class="whitespace-pre-wrap">@message.Content</div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="text-center text-gray-500 py-8">
+                <div class="text-lg font-medium">Ready for Agent Collaboration</div>
+                <div class="text-sm mt-2">Start a conversation below to watch agents work together.</div>
+            </div>
+        }
+    </div>
+
+    <!-- Input Area - Fixed at bottom -->
+    <div class="fixed bottom-0 left-64 right-0 bg-white border-t border-gray-200 px-6 py-4 shadow-lg">
+        <div class="flex space-x-4">
+            <input @bind="taskInput"
+                   @bind:event="oninput"
+                   @onkeypress="HandleKeyPress"
+                   @ref="taskInputRef"
+                   placeholder="Describe a task for the agents to work on..."
+                   class="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+
+            <button @onclick="StartAgentTask"
+                    disabled="@(string.IsNullOrWhiteSpace(taskInput))"
+                    class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors">
+                Start Task
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private HubConnection? _hubConnection;
+    private List<AgentMessage> agentMessages = new();
+    private string taskInput = string.Empty;
+    private ElementReference taskInputRef;
+
+    public bool IsConnected =>
+        _hubConnection?.State == HubConnectionState.Connected;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _hubConnection = new HubConnectionBuilder()
+            .WithUrl(Navigation.ToAbsoluteUri("/multiagenthub"))
+            .ConfigureLogging(logging =>
+            {
+                logging.SetMinimumLevel(LogLevel.Information);
+            })
+            .Build();
+
+        _hubConnection.On<AgentMessage>("ReceiveAgentMessage", (message) =>
+        {
+            agentMessages.Add(message);
+            InvokeAsync(StateHasChanged);
+            InvokeAsync(ScrollToBottom);
+        });
+
+        _hubConnection.On<AgentStreamingMessage>("ReceiveAgentStreamingChunk", (streamingMessage) =>
+        {
+            HandleStreamingChunk(streamingMessage);
+            InvokeAsync(StateHasChanged);
+            InvokeAsync(ScrollToBottom);
+        });
+
+        _hubConnection.On<List<AgentConfiguration>>("AgentStatusUpdate", (agents) =>
+        {
+            // Handle agent status updates if needed
+            InvokeAsync(StateHasChanged);
+        });
+
+        try
+        {
+            await _hubConnection.StartAsync();
+        }
+        catch (Exception ex)
+        {
+            // Log the error and show a user-friendly message
+            var errorMessage = new AgentMessage
+            {
+                Content = $"Connection error: {ex.Message}",
+                AgentName = "System",
+                MessageType = "error",
+                IsComplete = true
+            };
+            agentMessages.Add(errorMessage);
+            StateHasChanged();
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await FocusInput();
+        }
+    }
+
+    private async Task FocusInput()
+    {
+        try
+        {
+            await taskInputRef.FocusAsync();
+        }
+        catch
+        {
+            // Ignore focus errors
+        }
+    }
+
+    private async Task StartAgentTask()
+    {
+        if (_hubConnection is not null && !string.IsNullOrWhiteSpace(taskInput))
+        {
+            await _hubConnection.SendAsync("StartAgentConversation", taskInput, "test");
+            taskInput = string.Empty;
+            await FocusInput();
+        }
+    }
+
+    private async Task HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !e.ShiftKey)
+        {
+            await StartAgentTask();
+        }
+    }
+
+    private void HandleStreamingChunk(AgentStreamingMessage streamingMessage)
+    {
+        // Find existing streaming message or create a new one
+        var existingMessage = agentMessages.FirstOrDefault(m =>
+            m.Id == streamingMessage.MessageId);
+
+        if (existingMessage != null)
+        {
+            // Update existing streaming message
+            existingMessage.Content += streamingMessage.Content;
+            existingMessage.IsComplete = streamingMessage.IsComplete;
+            existingMessage.IsStreaming = !streamingMessage.IsComplete;
+        }
+    }
+
+    private async Task ScrollToBottom()
+    {
+        await JSRuntime.InvokeVoidAsync("scrollToBottom", "agent-chat-container");
+    }
+
+    private string GetMessageContainerClass(AgentMessage message)
+    {
+        return message.MessageType switch
+        {
+            "user" => "flex justify-end",
+            "error" => "flex justify-center",
+            "system" => "flex justify-center",
+            _ => "flex justify-start"
+        };
+    }
+
+    private string GetMessageBubbleClass(AgentMessage message)
+    {
+        var baseClass = "max-w-3xl px-4 py-3 rounded-lg";
+        
+        return message.MessageType switch
+        {
+            "user" => $"{baseClass} bg-blue-600 text-white",
+            "error" => $"{baseClass} bg-red-100 text-red-800 border border-red-200",
+            "system" => $"{baseClass} bg-gray-100 text-gray-700 border border-gray-200 text-center",
+            _ => $"{baseClass} bg-white border shadow-sm {GetAgentColorClass(message.AgentName)}"
+        };
+    }
+
+    private string GetAgentColorClass(string agentName)
+    {
+        return agentName.ToLowerInvariant() switch
+        {
+            "creativeagent" => "agent-creative",
+            "analyticalagent" => "agent-analytical", 
+            "copywriter" => "agent-copywriter",
+            "reviewer" => "agent-reviewer",
+            _ => "border-gray-200"
+        };
+    }
+
+    private string GetAgentAvatar(string agentName)
+    {
+        return agentName.ToLowerInvariant() switch
+        {
+            "creativeagent" => "🎨",
+            "analyticalagent" => "⚖️",
+            "copywriter" => "✍️",
+            "reviewer" => "👔",
+            _ => "🤖"
+        };
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_hubConnection is not null)
+        {
+            await _hubConnection.DisposeAsync();
+        }
+    }
+}
+
+<script>
+    window.scrollToBottom = (elementId) => {
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.scrollTop = element.scrollHeight;
+        }
+    };
+</script>

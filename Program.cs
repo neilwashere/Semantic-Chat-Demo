@@ -34,6 +34,9 @@ builder.Services.AddScoped<ChatService>();
 // Add ConversationPersistenceService for JSON storage
 builder.Services.AddScoped<ConversationPersistenceService>();
 
+// Add AgentService for multi-agent management
+builder.Services.AddScoped<AgentService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -57,5 +60,6 @@ app.MapRazorComponents<App>()
 
 // Map SignalR hubs
 app.MapHub<ChatHub>("/chathub");
+app.MapHub<MultiAgentHub>("/multiagenthub");
 
 app.Run();

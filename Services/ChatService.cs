@@ -3,16 +3,16 @@ using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
 using System.Collections.Concurrent;
 
-namespace semantic_chat_demo.Services;
+namespace SemanticChatDemo.Services;
 
 public class ChatService(Kernel kernel, ILogger<ChatService> logger)
 {
     // Store chat history per connection ID
-    private readonly ConcurrentDictionary<string, ChatHistory> _conversations = new();
+    private readonly ConcurrentDictionary<string, ChatHistory> conversations = new();
 
     public ChatHistory GetOrCreateChatHistory(string connectionId)
     {
-        return _conversations.GetOrAdd(connectionId, _ => new ChatHistory(
+        return conversations.GetOrAdd(connectionId, _ => new ChatHistory(
             "You are a helpful assistant with access to bombastic weather facts. " +
             "When users ask about weather or want interesting facts, you can use your weather functions. " +
             "Always be enthusiastic and engaging in your responses!"));
@@ -116,7 +116,7 @@ public class ChatService(Kernel kernel, ILogger<ChatService> logger)
 
     public void ClearHistory(string connectionId)
     {
-        _conversations.TryRemove(connectionId, out _);
+        conversations.TryRemove(connectionId, out _);
         logger.LogInformation("Cleared chat history for connection {ConnectionId}", connectionId);
     }
 

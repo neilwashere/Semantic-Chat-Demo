@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.SemanticKernel;
-using semantic_chat_demo.Models;
-using semantic_chat_demo.Services;
+using SemanticChatDemo.Models;
+using SemanticChatDemo.Services;
 
-namespace semantic_chat_demo.Hubs;
+namespace SemanticChatDemo.Hubs;
 
 public class ChatHub(ChatService chatService, ILogger<ChatHub> logger) : Hub
 {

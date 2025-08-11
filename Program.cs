@@ -1,8 +1,8 @@
-using semantic_chat_demo.Components;
-using semantic_chat_demo.Models;
-using semantic_chat_demo.Hubs;
-using semantic_chat_demo.Services;
-using semantic_chat_demo.Plugins;
+using SemanticChatDemo.Components;
+using SemanticChatDemo.Models;
+using SemanticChatDemo.Hubs;
+using SemanticChatDemo.Services;
+using SemanticChatDemo.Plugins;
 using Microsoft.SemanticKernel;
 
 var builder = WebApplication.CreateBuilder(args);

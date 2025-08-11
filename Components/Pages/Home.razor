@@ -1,7 +1,70 @@
 ﻿@page "/"
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Semantic Kernel Chat Demo</PageTitle>
 
-<h1>Hello, world!</h1>
+<div class="max-w-4xl mx-auto p-8">
+    <div class="text-center mb-12">
+        <h1 class="text-4xl font-bold text-gray-900 mb-4">Semantic Kernel Learning Demo</h1>
+        <p class="text-xl text-gray-600 mb-8">
+            A progressive demonstration of Semantic Kernel concepts through a real-time chat application
+        </p>
+        <a href="/chat" class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-8 rounded-lg transition-colors inline-block">
+            Start Chatting →
+        </a>
+    </div>
 
-Welcome to your new app.
+    <div class="grid md:grid-cols-2 gap-8 mb-12">
+        <div class="bg-white p-6 rounded-lg shadow-sm border">
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">🧠 What is Semantic Kernel?</h2>
+            <p class="text-gray-600 mb-4">
+                Microsoft Semantic Kernel is an open-source SDK that lets you easily build AI agents 
+                that can call your existing code and integrate with various AI services.
+            </p>
+            <ul class="text-gray-600 space-y-2">
+                <li>• Function calling and plugins</li>
+                <li>• Memory and RAG capabilities</li>
+                <li>• Multi-agent orchestration</li>
+                <li>• Production-ready features</li>
+            </ul>
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow-sm border">
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">🚀 Demo Features</h2>
+            <p class="text-gray-600 mb-4">
+                This application progressively demonstrates key Semantic Kernel concepts:
+            </p>
+            <ul class="text-gray-600 space-y-2">
+                <li>• Real-time chat with OpenAI GPT-4o-mini</li>
+                <li>• SignalR for live communication</li>
+                <li>• Modern Blazor Server architecture</li>
+                <li>• Incremental feature additions</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
+        <h2 class="text-2xl font-semibold text-blue-900 mb-4">📋 Learning Roadmap</h2>
+        <div class="grid md:grid-cols-4 gap-4">
+            <div class="text-center">
+                <div class="bg-green-500 text-white rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-2">✓</div>
+                <h3 class="font-medium text-blue-900">Phase 1</h3>
+                <p class="text-sm text-blue-700">Core Chat</p>
+            </div>
+            <div class="text-center">
+                <div class="bg-gray-300 text-gray-600 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-2">2</div>
+                <h3 class="font-medium text-gray-700">Phase 2</h3>
+                <p class="text-sm text-gray-600">AI Orchestration</p>
+            </div>
+            <div class="text-center">
+                <div class="bg-gray-300 text-gray-600 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-2">3</div>
+                <h3 class="font-medium text-gray-700">Phase 3</h3>
+                <p class="text-sm text-gray-600">Agents</p>
+            </div>
+            <div class="text-center">
+                <div class="bg-gray-300 text-gray-600 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-2">4</div>
+                <h3 class="font-medium text-gray-700">Phase 4</h3>
+                <p class="text-sm text-gray-600">Advanced</p>
+            </div>
+        </div>
+    </div>
+</div>

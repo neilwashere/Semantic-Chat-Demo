@@ -23,6 +23,9 @@ public class MultiAgentHub(AgentService agentService, ILogger<MultiAgentHub> log
             var agentConfigurations = agentTeam.ToLowerInvariant() switch
             {
                 "copywriter" => AgentTemplates.GetCopywriterReviewerTeam(),
+                "research" => AgentTemplates.GetResearchTeam(),
+                "debate" => AgentTemplates.GetDebateTeam(),
+                "technical" => AgentTemplates.GetTechnicalReviewTeam(),
                 _ => AgentTemplates.GetTestAgentTeam()
             };
 
@@ -58,6 +61,9 @@ public class MultiAgentHub(AgentService agentService, ILogger<MultiAgentHub> log
             var agentConfigurations = agentTeam.ToLowerInvariant() switch
             {
                 "copywriter" => AgentTemplates.GetCopywriterReviewerTeam(),
+                "research" => AgentTemplates.GetResearchTeam(),
+                "debate" => AgentTemplates.GetDebateTeam(),
+                "technical" => AgentTemplates.GetTechnicalReviewTeam(),
                 _ => AgentTemplates.GetTestAgentTeam()
             };
 

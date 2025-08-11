@@ -50,6 +50,9 @@
                 <select @bind="selectedTeam" @bind:after="OnTeamChanged" class="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="test">Creative + Analytical</option>
                     <option value="copywriter">CopyWriter + Reviewer</option>
+                    <option value="research">Researcher + Fact Checker</option>
+                    <option value="debate">Advocate + Devil's Advocate</option>
+                    <option value="technical">Architect + Code Reviewer</option>
                 </select>
             </div>
         </div>
@@ -118,6 +121,13 @@
                    @ref="taskInputRef"
                    placeholder="Describe a task for the agents to work on..."
                    class="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+
+            <button @onclick="ExportConversation"
+                    disabled="@(!agentMessages.Any())"
+                    class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                    title="Export conversation">
+                📥
+            </button>
 
             <button @onclick="ClearConversation"
                     disabled="@(!agentMessages.Any())"
@@ -232,6 +242,9 @@
         {
             "copywriter" => "CopyWriter + Reviewer",
             "test" => "Creative + Analytical",
+            "research" => "Researcher + Fact Checker",
+            "debate" => "Advocate + Devil's Advocate", 
+            "technical" => "Architect + Code Reviewer",
             _ => teamKey
         };
     }
@@ -261,6 +274,52 @@
         agentMessages.Clear();
         StateHasChanged();
         await FocusInput();
+    }
+
+    private async Task ExportConversation()
+    {
+        if (!agentMessages.Any()) return;
+
+        try
+        {
+            var exportData = new
+            {
+                ExportedAt = DateTime.UtcNow,
+                Team = GetTeamDisplayName(selectedTeam),
+                AgentTeam = selectedTeam,
+                Agents = currentAgents.Select(a => new { a.Name, a.Description, a.AvatarEmoji }).ToList(),
+                MessageCount = agentMessages.Count,
+                Conversation = agentMessages.Select(m => new
+                {
+                    m.AgentName,
+                    m.MessageType,
+                    m.Content,
+                    Timestamp = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss UTC"),
+                    Role = GetAgentRole(m.AgentName)
+                }).ToList()
+            };
+
+            var json = System.Text.Json.JsonSerializer.Serialize(exportData, new System.Text.Json.JsonSerializerOptions
+            {
+                WriteIndented = true
+            });
+
+            var fileName = $"agent-conversation-{selectedTeam}-{DateTime.UtcNow:yyyyMMdd-HHmmss}.json";
+            await JSRuntime.InvokeVoidAsync("downloadFile", fileName, json);
+        }
+        catch (Exception ex)
+        {
+            // Add error message to conversation
+            var errorMessage = new AgentMessage
+            {
+                Content = $"Failed to export conversation: {ex.Message}",
+                AgentName = "System",
+                MessageType = "error",
+                IsComplete = true
+            };
+            agentMessages.Add(errorMessage);
+            StateHasChanged();
+        }
     }
 
     private async Task StartAgentTask()
@@ -352,6 +411,12 @@
             "agent-analytical" => "text-green-600", 
             "agent-copywriter" => "text-red-600",
             "agent-reviewer" => "text-blue-600",
+            "agent-researcher" => "text-cyan-600",
+            "agent-factchecker" => "text-green-600",
+            "agent-advocate" => "text-orange-600",
+            "agent-devils-advocate" => "text-rose-700",
+            "agent-architect" => "text-violet-600",
+            "agent-code-reviewer" => "text-gray-700",
             _ => "text-gray-600"
         };
     }
@@ -366,6 +431,12 @@
                 "agent-analytical" => "bg-green-500", 
                 "agent-copywriter" => "bg-red-500",
                 "agent-reviewer" => "bg-blue-500",
+                "agent-researcher" => "bg-cyan-500",
+                "agent-factchecker" => "bg-green-500",
+                "agent-advocate" => "bg-orange-500",
+                "agent-devils-advocate" => "bg-rose-600",
+                "agent-architect" => "bg-violet-500",
+                "agent-code-reviewer" => "bg-gray-600",
                 _ => "bg-green-500"
             }
             : "bg-gray-400";
@@ -386,5 +457,16 @@
         if (element) {
             element.scrollTop = element.scrollHeight;
         }
+    };
+
+    window.downloadFile = (fileName, content) => {
+        const element = document.createElement('a');
+        const file = new Blob([content], { type: 'application/json' });
+        element.href = URL.createObjectURL(file);
+        element.download = fileName;
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
+        URL.revokeObjectURL(element.href);
     };
 </script>
